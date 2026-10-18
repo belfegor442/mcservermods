@@ -46,7 +46,7 @@ public final class GameSessionManager {
             return Result.error("key.gambling.error.already_in_game");
         }
         var profile = economy.getProfile(playerId);
-        if (profile != null && profile.chips() < bet) {
+        if (profile == null || profile.chips() < bet) {
             return Result.error("key.gambling.error.insufficient_funds");
         }
         GameSession session = new GameSession(playerId, gameType, bet, PlayerState.IN_GAME, "");
@@ -69,7 +69,6 @@ public final class GameSessionManager {
         if (!economy.removeChips(playerId, null, session.bet(), "BET")) {
             return Result.error("key.gambling.error.insufficient_funds");
         }
-        economy.addWager(playerId, session.bet());
         GameSession updated = session.withState(PlayerState.BETTING, "");
         sessions.put(playerId, updated);
         fireChanged(playerId, updated);
@@ -85,9 +84,10 @@ public final class GameSessionManager {
             return Result.error("key.gambling.error.invalid_state");
         }
         long payout = win ? Validation.safeAdd(session.bet(), session.bet()) : 0L;
-        if (win) {
-            economy.addChips(playerId, null, payout, "PAYOUT");
+        if (win && !economy.addChips(playerId, null, payout, "PAYOUT")) {
+            return Result.error("key.gambling.error.payout_failed");
         }
+        economy.addWager(playerId, session.bet());
         String resultText = Validation.sanitizeResult(rawResult);
         if (resultText.isEmpty()) {
             resultText = win ? "WIN" : "LOSS";
@@ -125,9 +125,17 @@ public final class GameSessionManager {
     }
 
     public synchronized void handleDisconnect(UUID playerId) {
-        if (sessions.remove(playerId) != null) {
-            fireChanged(playerId, null);
+        GameSession session = sessions.get(playerId);
+        if (session == null) {
+            return;
         }
+        // A confirmed bet has already been deducted. If the player leaves before
+        // the round is resolved, return the stake rather than silently destroying it.
+        if (session.state() == PlayerState.BETTING) {
+            economy.addChips(playerId, null, session.bet(), "DISCONNECT_REFUND");
+        }
+        sessions.remove(playerId);
+        fireChanged(playerId, null);
     }
 
     private void fireChanged(UUID playerId, GameSession session) {
