@@ -22,24 +22,27 @@ public final class CasinoCommands {
     }
 
     public static void register() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                dispatcher.register(literal("casino")
-                        .then(literal("coinflip")
-                                .then(argument("bet", LongArgumentType.longArg(1, Validation.MAX_BET))
-                                        .then(argument("side", StringArgumentType.word())
-                                                .suggests((context, builder) -> {
-                                                    builder.suggest("heads");
-                                                    builder.suggest("tails");
-                                                    return builder.buildFuture();
-                                                })
-                                                .executes(context -> playCoinFlip(
-                                                        context.getSource(),
-                                                        LongArgumentType.getLong(context, "bet"),
-                                                        StringArgumentType.getString(context, "side"))))))
-                        .then(literal("help").executes(context -> {
-                            context.getSource().sendFeedback(() -> Text.translatable("key.gambling.casino.help"), false);
-                            return 1;
-                        })));
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            var casino = literal("casino");
+            casino.then(literal("coinflip")
+                    .then(argument("bet", LongArgumentType.longArg(1, Validation.MAX_BET))
+                            .then(argument("side", StringArgumentType.word())
+                                    .suggests((context, builder) -> {
+                                        builder.suggest("heads");
+                                        builder.suggest("tails");
+                                        return builder.buildFuture();
+                                    })
+                                    .executes(context -> playCoinFlip(
+                                            context.getSource(),
+                                            LongArgumentType.getLong(context, "bet"),
+                                            StringArgumentType.getString(context, "side"))))));
+            casino.then(literal("help").executes(context -> {
+                context.getSource().sendFeedback(
+                        () -> Text.translatable("key.gambling.casino.help"), false);
+                return 1;
+            }));
+            dispatcher.register(casino);
+        });
     }
 
     private static int playCoinFlip(net.minecraft.server.command.ServerCommandSource source, long bet, String rawSide) {
