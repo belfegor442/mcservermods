@@ -33,12 +33,14 @@
   "key.gambling.error.insufficient_funds": "No tienes suficientes CHIPS.",
   "key.gambling.error.payout_failed": "No se pudo abonar el premio. La apuesta sigue siendo recuperable.",
   "key.gambling.error.bet_mismatch": "La apuesta no coincide con la de la sesión.",
-  "key.gambling.casino.help": "Juegos de casino: /casino coinflip <apuesta> <heads|tails> o /casino roulette <apuesta> <red|black|green>",
+  "key.gambling.casino.help": "Juegos de casino: /casino coinflip <apuesta> <heads|tails>, /casino roulette <apuesta> <red|black|green>, /casino slots <apuesta>",
   "key.gambling.casino.coinflip.win": "Moneda: %s. Has elegido %s. ¡Has ganado! Premio: %s CHIPS.",
   "key.gambling.casino.coinflip.loss": "Moneda: %s. Has elegido %s. Has perdido esta apuesta.",
   "key.gambling.error.players_only": "Este juego de casino solo lo pueden jugar jugadores.",
   "key.gambling.error.coinflip_side": "Elige heads (cara) o tails (cruz).",
   "key.gambling.casino.roulette.win": "Ruleta: %s (%s). Has elegido %s. ¡Has ganado! Premio: %s CHIPS.",
   "key.gambling.casino.roulette.loss": "Ruleta: %s (%s). Has elegido %s. Has perdido esta apuesta.",
-  "key.gambling.error.roulette_color": "Elige red (rojo), black (negro) o green (verde)."
+  "key.gambling.error.roulette_color": "Elige red (rojo), black (negro) o green (verde).",
+  "key.gambling.casino.slots.win": "Tragaperras: %s | %s | %s. ¡Combinación ganadora! Premio: %s CHIPS.",
+  "key.gambling.casino.slots.loss": "Tragaperras: %s | %s | %s. Sin combinación ganadora."
 }
