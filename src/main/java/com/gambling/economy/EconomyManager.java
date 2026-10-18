@@ -38,7 +38,7 @@ public final class EconomyManager {
         return p == null ? null : p.copy();
     }
 
-    public PlayerProfile getOrCreate(UUID uuid, String name) {
+    public synchronized PlayerProfile getOrCreate(UUID uuid, String name) {
         PlayerProfile existing = profiles.get(uuid);
         if (existing == null) {
             existing = new PlayerProfile(uuid, name, DEFAULT_CHIPS, 0L, 0L);
@@ -51,6 +51,7 @@ public final class EconomyManager {
         if (name != null && !name.equals(existing.name())) {
             existing.setName(name);
             dirty = true;
+            fireChanged(uuid, existing);
         }
         return existing.copy();
     }
@@ -116,9 +117,12 @@ public final class EconomyManager {
         return dirty;
     }
 
-    public synchronized void save() {
-        storage.save(Map.copyOf(profiles));
-        dirty = false;
+    public synchronized boolean save() {
+        boolean saved = storage.save(Map.copyOf(profiles));
+        if (saved) {
+            dirty = false;
+        }
+        return saved;
     }
 
     private void fireChanged(UUID uuid, PlayerProfile profile) {
