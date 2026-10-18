@@ -33,12 +33,14 @@
   "key.gambling.error.insufficient_funds": "Not enough CHIPS.",
   "key.gambling.error.payout_failed": "The payout could not be credited. The bet remains recoverable.",
   "key.gambling.error.bet_mismatch": "Bet amount does not match the session bet.",
-  "key.gambling.casino.help": "Casino games: /casino coinflip <bet> <heads|tails> or /casino roulette <bet> <red|black|green>",
+  "key.gambling.casino.help": "Casino games: /casino coinflip <bet> <heads|tails>, /casino roulette <bet> <red|black|green>, /casino slots <bet>",
   "key.gambling.casino.coinflip.win": "Coin flip: %s. You chose %s. You win! Payout: %s CHIPS.",
   "key.gambling.casino.coinflip.loss": "Coin flip: %s. You chose %s. You lost this bet.",
   "key.gambling.error.players_only": "This casino game can only be played by a player.",
   "key.gambling.error.coinflip_side": "Choose either heads or tails.",
   "key.gambling.casino.roulette.win": "Roulette: %s (%s). You chose %s. You win! Payout: %s CHIPS.",
   "key.gambling.casino.roulette.loss": "Roulette: %s (%s). You chose %s. You lost this bet.",
-  "key.gambling.error.roulette_color": "Choose red, black, or green."
+  "key.gambling.error.roulette_color": "Choose red, black, or green.",
+  "key.gambling.casino.slots.win": "Slots: %s | %s | %s. Winning combination! Payout: %s CHIPS.",
+  "key.gambling.casino.slots.loss": "Slots: %s | %s | %s. No winning combination."
 }
