@@ -31,5 +31,6 @@
   "key.gambling.error.invalid_bet": "Cantidad de apuesta no válida.",
   "key.gambling.error.invalid_amount": "Cantidad no válida.",
   "key.gambling.error.insufficient_funds": "No tienes suficientes CHIPS.",
+  "key.gambling.error.payout_failed": "No se pudo abonar el premio. La apuesta sigue siendo recuperable.",
   "key.gambling.error.bet_mismatch": "La apuesta no coincide con la de la sesión."
 }
