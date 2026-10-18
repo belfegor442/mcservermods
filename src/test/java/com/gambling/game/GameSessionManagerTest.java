@@ -86,7 +86,7 @@ class GameSessionManagerTest {
         assertTrue(result.ok());
         assertEquals(before - 100, economy.getProfile(player).chips());
         assertEquals(PlayerState.BETTING, sessions.getSession(player).state());
-        assertEquals(100L, economy.getProfile(player).totalWagered());
+        assertEquals(0L, economy.getProfile(player).totalWagered(), "an unresolved bet must not count as completed wagering");
     }
 
     @Test
@@ -117,6 +117,7 @@ class GameSessionManagerTest {
         assertEquals(afterBet + 200, economy.getProfile(player).chips());
         assertEquals(PlayerState.FINALIZING, sessions.getSession(player).state());
         assertEquals("heads", sessions.getSession(player).result());
+        assertEquals(100L, economy.getProfile(player).totalWagered());
     }
 
     @Test
@@ -176,6 +177,20 @@ class GameSessionManagerTest {
         sessions.startSession(player, "coinflip", 100);
         sessions.handleDisconnect(player);
         assertNull(sessions.getSession(player));
+    }
+
+    @Test
+    void disconnectDuringUnresolvedBetRefundsStake() {
+        long before = economy.getProfile(player).chips();
+        sessions.startSession(player, "coinflip", 100);
+        assertTrue(sessions.commitBet(player, 100).ok());
+        assertEquals(before - 100, economy.getProfile(player).chips());
+
+        sessions.handleDisconnect(player);
+
+        assertEquals(before, economy.getProfile(player).chips());
+        assertNull(sessions.getSession(player));
+        assertEquals(0L, economy.getProfile(player).totalWagered());
     }
 
     @Test
