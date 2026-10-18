@@ -197,7 +197,7 @@ class EconomyManagerTest {
     }
 
     @Test
-    void addChipsRejectsBalanceOverflow() {
+    void addChipsRejectsBalanceOverflow(@TempDir Path dir) {
         EconomyManager manager = createManager(dir);
         UUID id = UUID.randomUUID();
         manager.getOrCreate(id, "Steve");
