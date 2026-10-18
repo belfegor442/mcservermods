@@ -28,3 +28,10 @@ jobs:
         run: ./gradlew --no-daemon clean test
       - name: Build mod
         run: ./gradlew --no-daemon build
+      - name: Upload mod JARs
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcservermods-beta-${{ github.sha }}
+          path: build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 14
