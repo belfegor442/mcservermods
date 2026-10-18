@@ -136,6 +136,20 @@ class EconomyManagerTest {
     }
 
     @Test
+    void failedSaveKeepsManagerDirty(@TempDir Path dir) throws Exception {
+        Path blocker = dir.resolve("not-a-directory");
+        java.nio.file.Files.writeString(blocker, "file");
+        EconomyManager manager = new EconomyManager(
+                new JsonProfileStorage(blocker.resolve("profiles.json")),
+                new TransactionLog(dir.resolve("transactions.csv")));
+        manager.loadFromDisk();
+        manager.getOrCreate(UUID.randomUUID(), "Steve");
+
+        assertFalse(manager.save());
+        assertTrue(manager.isDirty(), "failed persistence must remain eligible for retry");
+    }
+
+    @Test
     void corruptFileDoesNotGetOverwrittenWithDefaults(@TempDir Path dir) throws Exception {
         Path file = dir.resolve("profiles.json");
         java.nio.file.Files.writeString(file, "{ this is not json !!!");
