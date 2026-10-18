@@ -6,7 +6,7 @@ Fabric mod for Minecraft Java Edition 1.21.1, built with Java 21.
 
 - Server-authoritative virtual CHIPS balances and player profiles.
 - Persistent JSON profiles, transaction log, periodic saves, and balance/profile synchronization.
-- Playable coin-flip and European roulette games, with server-side randomness and game-specific payouts.
+- Playable coin-flip, European roulette, and three-reel slots games, with server-side randomness and game-specific payouts.
 - A lightweight HUD showing the player's balance, level, and active round state.
 - English and Spanish messages.
 - Regression tests for economy, session transitions, disconnect refunds, failed saves, and payout-cap handling.
@@ -25,6 +25,7 @@ CHIPS are fictional in-game points. They have no real-money value and cannot be 
 - `/casino help` — show available casino commands.
 - `/casino coinflip <bet> <heads|tails>` — wager CHIPS on a server-randomized coin flip. A win returns 2× the stake; a loss forfeits the stake.
 - `/casino roulette <bet> <red|black|green>` — single-zero European roulette. Red/black wins return 2× the stake; a green/zero win returns 36× the stake.
+- `/casino slots <bet>` — three-reel slots. Any pair returns 2×, a triple returns 8×, and three SEVEN symbols return 20× the stake.
 - `/gambling sync` — request a profile/HUD resynchronization.
 - `/gambling session` — inspect the current session, if any.
 
@@ -43,4 +44,4 @@ On Windows, use `gradlew.bat` instead. GitHub Actions runs the same verification
 
 ## Beta limitations
 
-This is an early beta, not a finished multi-game casino or War mod. Coin flip and European roulette are the first playable games. Blackjack, slots, a graphical casino menu, and the War mode are not implemented yet. Back up the server's `config/gambling` directory before testing updates.
+This is an early beta, not a finished multi-game casino or War mod. Coin flip, European roulette, and slots are playable. Blackjack, a graphical casino menu, and the War mode are not implemented yet. Back up the server's `config/gambling` directory before testing updates.
