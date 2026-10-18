@@ -150,6 +150,18 @@ class GameSessionManagerTest {
     }
 
     @Test
+    void slotsJackpotPayoutReturnsTwentyTimesStake() {
+        assertTrue(sessions.startSession(player, "slots", 10).ok());
+        assertTrue(sessions.commitBet(player, 10).ok());
+        long afterBet = economy.getProfile(player).chips();
+
+        GameSessionManager.Result result = sessions.resolveRound(player, true, "SEVEN | SEVEN | SEVEN", 20);
+
+        assertTrue(result.ok());
+        assertEquals(afterBet + 200, economy.getProfile(player).chips());
+    }
+
+    @Test
     void invalidPayoutMultiplierCannotResolveRound() {
         assertTrue(sessions.startSession(player, "roulette", 10).ok());
         assertTrue(sessions.commitBet(player, 10).ok());
