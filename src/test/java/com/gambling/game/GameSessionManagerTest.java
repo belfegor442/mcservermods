@@ -121,6 +121,22 @@ class GameSessionManagerTest {
     }
 
     @Test
+    void failedPayoutDoesNotResolveRoundOrLoseStake() {
+        economy.setChips(player, "Steve", com.gambling.util.Validation.MAX_ADMIN_AMOUNT, "TEST");
+        assertTrue(sessions.startSession(player, "coinflip", 100).ok());
+        assertTrue(sessions.commitBet(player, 100).ok());
+        long afterStake = economy.getProfile(player).chips();
+
+        GameSessionManager.Result result = sessions.resolveRound(player, true, "heads");
+
+        assertFalse(result.ok());
+        assertEquals("key.gambling.error.payout_failed", result.messageKey());
+        assertEquals(afterStake, economy.getProfile(player).chips());
+        assertEquals(PlayerState.BETTING, sessions.getSession(player).state());
+        assertEquals(0L, economy.getProfile(player).totalWagered());
+    }
+
+    @Test
     void resolveLosePaysNothing() {
         sessions.startSession(player, "coinflip", 100);
         sessions.commitBet(player, 100);
