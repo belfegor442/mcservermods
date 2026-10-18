@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -93,7 +94,7 @@ public final class JsonProfileStorage {
         }
     }
 
-    public synchronized void save(Map<UUID, PlayerProfile> profiles) {
+    public synchronized boolean save(Map<UUID, PlayerProfile> profiles) {
         try {
             Files.createDirectories(file.getParent());
             JsonObject players = new JsonObject();
@@ -117,9 +118,15 @@ public final class JsonProfileStorage {
             if (Files.exists(file)) {
                 Files.copy(file, backupFile, StandardCopyOption.REPLACE_EXISTING);
             }
-            Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            try {
+                Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING);
+            }
+            return true;
         } catch (IOException e) {
             LOGGER.error("Failed to save profiles to {}: {}", file, e.toString());
+            return false;
         }
     }
 }
