@@ -137,6 +137,30 @@ class GameSessionManagerTest {
     }
 
     @Test
+    void rouletteGreenPayoutReturnsThirtySixTimesStake() {
+        assertTrue(sessions.startSession(player, "roulette", 10).ok());
+        assertTrue(sessions.commitBet(player, 10).ok());
+        long afterBet = economy.getProfile(player).chips();
+
+        GameSessionManager.Result result = sessions.resolveRound(player, true, "0 GREEN", 36);
+
+        assertTrue(result.ok());
+        assertEquals(afterBet + 360, economy.getProfile(player).chips());
+        assertEquals(PlayerState.FINALIZING, sessions.getSession(player).state());
+    }
+
+    @Test
+    void invalidPayoutMultiplierCannotResolveRound() {
+        assertTrue(sessions.startSession(player, "roulette", 10).ok());
+        assertTrue(sessions.commitBet(player, 10).ok());
+
+        GameSessionManager.Result result = sessions.resolveRound(player, true, "0 GREEN", 37);
+
+        assertFalse(result.ok());
+        assertEquals(PlayerState.BETTING, sessions.getSession(player).state());
+    }
+
+    @Test
     void resolveLosePaysNothing() {
         sessions.startSession(player, "coinflip", 100);
         sessions.commitBet(player, 100);
