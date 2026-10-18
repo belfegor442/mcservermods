@@ -76,7 +76,7 @@ public final class EconomyManager {
             return false;
         }
         PlayerProfile p = profiles.get(uuid);
-        if (p == null) {
+        if (p == null || amount > Validation.MAX_ADMIN_AMOUNT - p.chips()) {
             return false;
         }
         p.addChips(amount);
