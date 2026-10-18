@@ -76,6 +76,13 @@ public final class GameSessionManager {
     }
 
     public synchronized Result resolveRound(UUID playerId, boolean win, String rawResult) {
+        return resolveRound(playerId, win, rawResult, 2L);
+    }
+
+    public synchronized Result resolveRound(UUID playerId, boolean win, String rawResult, long payoutMultiplier) {
+        if (payoutMultiplier < 1L || payoutMultiplier > 36L) {
+            return Result.error("key.gambling.error.invalid_bet");
+        }
         GameSession session = sessions.get(playerId);
         if (session == null) {
             return Result.error("key.gambling.error.no_session");
@@ -83,7 +90,7 @@ public final class GameSessionManager {
         if (session.state() != PlayerState.BETTING) {
             return Result.error("key.gambling.error.invalid_state");
         }
-        long payout = win ? Validation.safeAdd(session.bet(), session.bet()) : 0L;
+        long payout = win ? session.bet() * payoutMultiplier : 0L;
         if (win && !economy.addChips(playerId, null, payout, "PAYOUT")) {
             return Result.error("key.gambling.error.payout_failed");
         }
