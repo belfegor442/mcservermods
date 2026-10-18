@@ -84,10 +84,9 @@ public final class CasinoCommands {
         }
 
         state.replyResult(player, GameSessionManager.Result.success(
-                "key.gambling.casino.coinflip.result",
+                won ? "key.gambling.casino.coinflip.win" : "key.gambling.casino.coinflip.loss",
                 resultSide,
                 chosenSide,
-                won ? "key.gambling.casino.win" : "key.gambling.casino.loss",
                 Long.toString(won ? bet * 2L : 0L)));
         GameSessionManager.Result finished = sessions.finishSession(player.getUuid());
         if (!finished.ok()) {
