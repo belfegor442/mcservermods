@@ -197,6 +197,17 @@ class EconomyManagerTest {
     }
 
     @Test
+    void addChipsRejectsBalanceOverflow() {
+        EconomyManager manager = createManager(dir);
+        UUID id = UUID.randomUUID();
+        manager.getOrCreate(id, "Steve");
+        assertTrue(manager.setChips(id, "Steve", Validation.MAX_ADMIN_AMOUNT - 5, "TEST"));
+
+        assertFalse(manager.addChips(id, "Steve", 10, "TEST"));
+        assertEquals(Validation.MAX_ADMIN_AMOUNT - 5, manager.getProfile(id).chips());
+    }
+
+    @Test
     void levelFormula() {
         assertEquals(1, Levels.levelForXp(0));
         assertEquals(1, Levels.levelForXp(99));
