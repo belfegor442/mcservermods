@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "gambling",
+  "version": "${version}",
+  "name": "Gambling",
+  "description": "Casino HUD with server-authoritative CHIPS economy, profiles and game sessions.",
+  "authors": [
+    "belfegor442"
+  ],
+  "license": "All-Rights-Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.gambling.GamblingMod"
+    ],
+    "client": [
+      "com.gambling.client.GamblingClientMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1",
+    "java": ">=21"
+  }
+}

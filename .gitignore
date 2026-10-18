@@ -1,0 +1,11 @@
+.gradle/
+build/
+out/
+run/
+logs/
+remappedSrc/
+.idea/
+*.iml
+.vscode/
+eula.txt
+options.txt
