@@ -1,6 +1,7 @@
 package com.gambling;
 
 import com.gambling.command.ModCommands;
+import com.gambling.command.CasinoCommands;
 import com.gambling.game.GameSessionManager;
 import com.gambling.network.BetRequestC2S;
 import com.gambling.network.GameStateSyncS2C;
@@ -28,6 +29,7 @@ public final class GamblingMod implements ModInitializer {
     public void onInitialize() {
         registerPayloads();
         ModCommands.register();
+        CasinoCommands.register();
         registerServerEvents();
         LOGGER.info("Gambling initialized.");
     }
