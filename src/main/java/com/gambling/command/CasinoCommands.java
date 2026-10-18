@@ -51,6 +51,11 @@ public final class CasinoCommands {
                                             context.getSource(),
                                             LongArgumentType.getLong(context, "bet"),
                                             StringArgumentType.getString(context, "color"))))));
+            casino.then(literal("slots")
+                    .then(argument("bet", LongArgumentType.longArg(1, Validation.MAX_BET))
+                            .executes(context -> playSlots(
+                                    context.getSource(),
+                                    LongArgumentType.getLong(context, "bet")))));
             casino.then(literal("help").executes(context -> {
                 context.getSource().sendFeedback(
                         () -> Text.translatable("key.gambling.casino.help"), false);
@@ -178,6 +183,71 @@ public final class CasinoCommands {
                     resultColor,
                     chosenColor));
         }
+        GameSessionManager.Result finished = sessions.finishSession(player.getUuid());
+        if (!finished.ok()) {
+            state.replyResult(player, finished);
+            return 0;
+        }
+        return 1;
+    }
+
+    private static int playSlots(net.minecraft.server.command.ServerCommandSource source, long bet) {
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) {
+            source.sendError(Text.translatable("key.gambling.error.players_only"));
+            return 0;
+        }
+        GamblingServerState state = GamblingServerState.get();
+        if (state == null) {
+            source.sendError(Text.literal("Casino system is not ready."));
+            return 0;
+        }
+
+        GameSessionManager sessions = state.sessions();
+        GameSessionManager.Result started = sessions.startSession(player.getUuid(), "slots", bet);
+        if (!started.ok()) {
+            state.replyResult(player, started);
+            return 0;
+        }
+        GameSessionManager.Result committed = sessions.commitBet(player.getUuid(), bet);
+        if (!committed.ok()) {
+            sessions.cancelSession(player.getUuid());
+            state.replyResult(player, committed);
+            return 0;
+        }
+
+        String[] symbols = {"CHERRY", "BELL", "DIAMOND", "CROWN", "STAR", "SEVEN"};
+        int first = RANDOM.nextInt(symbols.length);
+        int second = RANDOM.nextInt(symbols.length);
+        int third = RANDOM.nextInt(symbols.length);
+        boolean triple = first == second && second == third;
+        boolean pair = first == second || first == third || second == third;
+        boolean won = pair;
+        long multiplier = triple ? (first == 5 ? 20L : 8L) : pair ? 2L : 1L;
+        String resultText = symbols[first] + " | " + symbols[second] + " | " + symbols[third]
+                + (won ? " — WIN x" + multiplier : " — LOSS");
+
+        GameSessionManager.Result resolved =
+                sessions.resolveRound(player.getUuid(), won, resultText, multiplier);
+        if (!resolved.ok()) {
+            state.replyResult(player, resolved);
+            return 0;
+        }
+        if (won) {
+            state.replyResult(player, GameSessionManager.Result.success(
+                    "key.gambling.casino.slots.win",
+                    symbols[first],
+                    symbols[second],
+                    symbols[third],
+                    Long.toString(bet * multiplier)));
+        } else {
+            state.replyResult(player, GameSessionManager.Result.success(
+                    "key.gambling.casino.slots.loss",
+                    symbols[first],
+                    symbols[second],
+                    symbols[third]));
+        }
+
         GameSessionManager.Result finished = sessions.finishSession(player.getUuid());
         if (!finished.ok()) {
             state.replyResult(player, finished);
