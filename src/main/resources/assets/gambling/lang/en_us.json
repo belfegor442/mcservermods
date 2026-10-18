@@ -31,5 +31,6 @@
   "key.gambling.error.invalid_bet": "Invalid bet amount.",
   "key.gambling.error.invalid_amount": "Invalid amount.",
   "key.gambling.error.insufficient_funds": "Not enough CHIPS.",
+  "key.gambling.error.payout_failed": "The payout could not be credited. The bet remains recoverable.",
   "key.gambling.error.bet_mismatch": "Bet amount does not match the session bet."
 }
