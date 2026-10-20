@@ -24,7 +24,7 @@ jobs:
       - name: Build mod and run unit tests
         run: ./gradlew --no-daemon build
       - name: Publish GitHub release with mod JARs
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: build/libs/*.jar
           generate_release_notes: true
