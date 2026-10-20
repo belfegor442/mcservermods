@@ -8,16 +8,16 @@ import com.gambling.config.GamblingConfig;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Set;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 public final class CasinoCommands {
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -30,8 +30,8 @@ public final class CasinoCommands {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             long maxBet = GamblingConfig.get().maxBet();
             var casino = literal("casino").executes(context -> {
-                context.getSource().sendFeedback(
-                        () -> Text.translatable("key.gambling.casino.help"), false);
+                context.getSource().sendSuccess(
+                        () -> Component.translatable("key.gambling.casino.help"), false);
                 return 1;
             });
             casino.then(literal("coinflip")
@@ -65,29 +65,29 @@ public final class CasinoCommands {
                                     context.getSource(),
                                     LongArgumentType.getLong(context, "bet")))));
             casino.then(literal("help").executes(context -> {
-                context.getSource().sendFeedback(
-                        () -> Text.translatable("key.gambling.casino.help"), false);
+                context.getSource().sendSuccess(
+                        () -> Component.translatable("key.gambling.casino.help"), false);
                 return 1;
             }));
             dispatcher.register(casino);
         });
     }
 
-    private static int playCoinFlip(ServerCommandSource source, long bet, String rawSide) {
-        ServerPlayerEntity player = source.getPlayer();
+    private static int playCoinFlip(CommandSourceStack source, long bet, String rawSide) {
+        ServerPlayer player = source.getPlayer();
         if (player == null) {
-            source.sendError(Text.translatable("key.gambling.error.players_only"));
+            source.sendFailure(Component.translatable("key.gambling.error.players_only"));
             return 0;
         }
         String chosenSide = rawSide.toLowerCase(Locale.ROOT);
         if (!chosenSide.equals("heads") && !chosenSide.equals("tails")) {
-            source.sendError(Text.translatable("key.gambling.error.coinflip_side"));
+            source.sendFailure(Component.translatable("key.gambling.error.coinflip_side"));
             return 0;
         }
 
         GamblingServerState state = GamblingServerState.get();
         if (state == null) {
-            source.sendError(Text.translatable("key.gambling.error.not_ready"));
+            source.sendFailure(Component.translatable("key.gambling.error.not_ready"));
             return 0;
         }
 
@@ -100,21 +100,21 @@ public final class CasinoCommands {
                         : new Object[]{resultSide, chosenSide});
     }
 
-    private static int playRoulette(ServerCommandSource source, long bet, String rawColor) {
-        ServerPlayerEntity player = source.getPlayer();
+    private static int playRoulette(CommandSourceStack source, long bet, String rawColor) {
+        ServerPlayer player = source.getPlayer();
         if (player == null) {
-            source.sendError(Text.translatable("key.gambling.error.players_only"));
+            source.sendFailure(Component.translatable("key.gambling.error.players_only"));
             return 0;
         }
         String chosenColor = rawColor.toLowerCase(Locale.ROOT);
         if (!ROULETTE_COLORS.contains(chosenColor)) {
-            source.sendError(Text.translatable("key.gambling.error.roulette_color"));
+            source.sendFailure(Component.translatable("key.gambling.error.roulette_color"));
             return 0;
         }
 
         GamblingServerState state = GamblingServerState.get();
         if (state == null) {
-            source.sendError(Text.translatable("key.gambling.error.not_ready"));
+            source.sendFailure(Component.translatable("key.gambling.error.not_ready"));
             return 0;
         }
 
@@ -129,15 +129,15 @@ public final class CasinoCommands {
                                 outcome.chosenColor()});
     }
 
-    private static int playSlots(ServerCommandSource source, long bet) {
-        ServerPlayerEntity player = source.getPlayer();
+    private static int playSlots(CommandSourceStack source, long bet) {
+        ServerPlayer player = source.getPlayer();
         if (player == null) {
-            source.sendError(Text.translatable("key.gambling.error.players_only"));
+            source.sendFailure(Component.translatable("key.gambling.error.players_only"));
             return 0;
         }
         GamblingServerState state = GamblingServerState.get();
         if (state == null) {
-            source.sendError(Text.translatable("key.gambling.error.not_ready"));
+            source.sendFailure(Component.translatable("key.gambling.error.not_ready"));
             return 0;
         }
 
@@ -156,35 +156,35 @@ public final class CasinoCommands {
      * outcome, and report it. The session stays in FINALIZING (visible on the
      * HUD) and is closed automatically when the next session starts.
      */
-    private static int playRound(GamblingServerState state, ServerPlayerEntity player,
+    private static int playRound(GamblingServerState state, ServerPlayer player,
                                  String gameType, long bet, boolean won, long multiplier,
                                  String resultText, String messageKey, Object[] messageArgs) {
         GameSessionManager sessions = state.sessions();
         long now = System.currentTimeMillis();
-        long waitMillis = state.roundLimiter().check(player.getUuid(), now);
+        long waitMillis = state.roundLimiter().check(player.getUUID(), now);
         if (waitMillis > 0) {
             state.replyResult(player, GameSessionManager.Result.error(
                     "key.gambling.error.cooldown", Long.toString((waitMillis + 999) / 1000)));
             return 0;
         }
 
-        GameSessionManager.Result started = sessions.startSession(player.getUuid(), gameType, bet);
+        GameSessionManager.Result started = sessions.startSession(player.getUUID(), gameType, bet);
         if (!started.ok()) {
             state.replyResult(player, started);
             return 0;
         }
 
-        GameSessionManager.Result committed = sessions.commitBet(player.getUuid(), bet);
+        GameSessionManager.Result committed = sessions.commitBet(player.getUUID(), bet);
         if (!committed.ok()) {
-            sessions.cancelSession(player.getUuid());
+            sessions.cancelSession(player.getUUID());
             state.replyResult(player, committed);
             return 0;
         }
         // Only rounds that actually staked chips consume the cooldown, so a
         // rejected start/commit does not lock the player out.
-        state.roundLimiter().record(player.getUuid(), now);
+        state.roundLimiter().record(player.getUUID(), now);
 
-        GameSessionManager.Result resolved = sessions.resolveRound(player.getUuid(), won, resultText, multiplier);
+        GameSessionManager.Result resolved = sessions.resolveRound(player.getUUID(), won, resultText, multiplier);
         if (!resolved.ok()) {
             state.replyResult(player, resolved);
             return 0;

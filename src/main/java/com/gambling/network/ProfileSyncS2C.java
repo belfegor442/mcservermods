@@ -1,27 +1,27 @@
 package com.gambling.network;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
 public record ProfileSyncS2C(String playerName, long chips, int level, long xp, long totalWagered)
-        implements CustomPayload {
-    public static final CustomPayload.Id<ProfileSyncS2C> ID =
-            new CustomPayload.Id<>(Identifier.of("gambling", "profile_sync"));
+        implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<ProfileSyncS2C> ID =
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("gambling", "profile_sync"));
 
-    public static final PacketCodec<PacketByteBuf, ProfileSyncS2C> CODEC =
-            PacketCodec.tuple(
-                    PacketCodecs.STRING, ProfileSyncS2C::playerName,
-                    PacketCodecs.VAR_LONG, ProfileSyncS2C::chips,
-                    PacketCodecs.VAR_INT, ProfileSyncS2C::level,
-                    PacketCodecs.VAR_LONG, ProfileSyncS2C::xp,
-                    PacketCodecs.VAR_LONG, ProfileSyncS2C::totalWagered,
+    public static final StreamCodec<FriendlyByteBuf, ProfileSyncS2C> CODEC =
+            StreamCodec.composite(
+                    ByteBufCodecs.STRING_UTF8, ProfileSyncS2C::playerName,
+                    ByteBufCodecs.VAR_LONG, ProfileSyncS2C::chips,
+                    ByteBufCodecs.VAR_INT, ProfileSyncS2C::level,
+                    ByteBufCodecs.VAR_LONG, ProfileSyncS2C::xp,
+                    ByteBufCodecs.VAR_LONG, ProfileSyncS2C::totalWagered,
                     ProfileSyncS2C::new);
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

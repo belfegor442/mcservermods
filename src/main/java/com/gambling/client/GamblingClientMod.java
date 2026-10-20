@@ -6,7 +6,8 @@ import com.gambling.network.ProfileSyncS2C;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.minecraft.resources.Identifier;
 
 public final class GamblingClientMod implements ClientModInitializer {
     @Override
@@ -26,7 +27,7 @@ public final class GamblingClientMod implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) ->
                 ClientGamblingState.get().clear());
 
-        HudRenderCallback.EVENT.register((context, tickCounter) ->
-                GamblingHudRenderer.render(context));
+        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("gambling", "hud"),
+                (extractor, tickCounter) -> GamblingHudRenderer.render(extractor));
     }
 }

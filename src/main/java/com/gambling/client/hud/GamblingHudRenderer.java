@@ -3,12 +3,13 @@ package com.gambling.client.hud;
 import com.gambling.client.ClientGamblingState;
 import com.gambling.game.PlayerState;
 import com.gambling.util.ChipsFormat;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 public final class GamblingHudRenderer {
     private static final int PADDING = 4;
@@ -23,9 +24,9 @@ public final class GamblingHudRenderer {
     private GamblingHudRenderer() {
     }
 
-    public static void render(DrawContext context) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null || client.options.hudHidden) {
+    public static void render(GuiGraphicsExtractor context) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.player == null || client.gui.hud.isHidden()) {
             return;
         }
         ClientGamblingState state = ClientGamblingState.get();
@@ -33,33 +34,33 @@ public final class GamblingHudRenderer {
             return;
         }
 
-        TextRenderer textRenderer = client.textRenderer;
+        Font font = client.font;
         int x = PADDING;
         int y = PADDING;
 
-        Text nameLine = Text.literal(state.playerName())
+        Component nameLine = Component.literal(state.playerName())
                 .append(" ")
-                .append(Text.translatable("key.gambling.hud.level", String.valueOf(state.level())));
-        Text chipsLine = Text.literal("◆ ")
-                .append(Text.translatable("key.gambling.hud.chips"))
+                .append(Component.translatable("key.gambling.hud.level", String.valueOf(state.level())));
+        Component chipsLine = Component.literal("◆ ")
+                .append(Component.translatable("key.gambling.hud.chips"))
                 .append(": ")
-                .append(Text.literal(ChipsFormat.format(state.chips())));
-        Text stateLine = Text.translatable("key.gambling.hud.state", stateLabel(state.playerState()));
+                .append(Component.literal(ChipsFormat.format(state.chips())));
+        Component stateLine = Component.translatable("key.gambling.hud.state", stateLabel(state.playerState()));
 
-        int width = textRenderer.getWidth(nameLine);
-        width = Math.max(width, textRenderer.getWidth(chipsLine));
-        width = Math.max(width, textRenderer.getWidth(stateLine));
+        int width = font.width(nameLine);
+        width = Math.max(width, font.width(chipsLine));
+        width = Math.max(width, font.width(stateLine));
 
         if (state.hasSession()) {
-            Text gameLine = Text.translatable("key.gambling.hud.game.type", state.gameType());
-            Text betLine = Text.translatable("key.gambling.hud.game.bet", ChipsFormat.format(state.bet()));
-            Text roundLine = Text.translatable("key.gambling.hud.game.round", stateLabel(state.playerState()));
-            width = Math.max(width, textRenderer.getWidth(gameLine));
-            width = Math.max(width, textRenderer.getWidth(betLine));
-            width = Math.max(width, textRenderer.getWidth(roundLine));
+            Component gameLine = Component.translatable("key.gambling.hud.game.type", state.gameType());
+            Component betLine = Component.translatable("key.gambling.hud.game.bet", ChipsFormat.format(state.bet()));
+            Component roundLine = Component.translatable("key.gambling.hud.game.round", stateLabel(state.playerState()));
+            width = Math.max(width, font.width(gameLine));
+            width = Math.max(width, font.width(betLine));
+            width = Math.max(width, font.width(roundLine));
             if (!state.result().isEmpty()) {
-                Text resultLine = Text.translatable("key.gambling.hud.game.result", state.result());
-                width = Math.max(width, textRenderer.getWidth(resultLine));
+                Component resultLine = Component.translatable("key.gambling.hud.game.result", state.result());
+                width = Math.max(width, font.width(resultLine));
             }
         }
 
@@ -76,45 +77,45 @@ public final class GamblingHudRenderer {
 
         renderPlayerHead(context, client, x + PADDING, y + PADDING);
 
-        context.drawTextWithShadow(textRenderer, nameLine, textX, textY, TEXT_COLOR);
+        context.text(font, nameLine, textX, textY, TEXT_COLOR);
         textY += LINE_HEIGHT;
-        context.drawTextWithShadow(textRenderer, chipsLine, textX, textY, CHIP_COLOR);
+        context.text(font, chipsLine, textX, textY, CHIP_COLOR);
         textY += LINE_HEIGHT;
-        context.drawTextWithShadow(textRenderer, stateLine, textX, textY, TEXT_COLOR);
+        context.text(font, stateLine, textX, textY, TEXT_COLOR);
         textY += LINE_HEIGHT;
 
         if (state.hasSession()) {
-            Text gameLine = Text.translatable("key.gambling.hud.game.type", state.gameType());
-            Text betLine = Text.translatable("key.gambling.hud.game.bet", ChipsFormat.format(state.bet()));
-            Text roundLine = Text.translatable("key.gambling.hud.game.round", stateLabel(state.playerState()));
-            context.drawTextWithShadow(textRenderer, gameLine, textX, textY, LEVEL_COLOR);
+            Component gameLine = Component.translatable("key.gambling.hud.game.type", state.gameType());
+            Component betLine = Component.translatable("key.gambling.hud.game.bet", ChipsFormat.format(state.bet()));
+            Component roundLine = Component.translatable("key.gambling.hud.game.round", stateLabel(state.playerState()));
+            context.text(font, gameLine, textX, textY, LEVEL_COLOR);
             textY += LINE_HEIGHT;
-            context.drawTextWithShadow(textRenderer, betLine, textX, textY, CHIP_COLOR);
+            context.text(font, betLine, textX, textY, CHIP_COLOR);
             textY += LINE_HEIGHT;
-            context.drawTextWithShadow(textRenderer, roundLine, textX, textY, TEXT_COLOR);
+            context.text(font, roundLine, textX, textY, TEXT_COLOR);
             textY += LINE_HEIGHT;
             if (!state.result().isEmpty()) {
-                Text resultLine = Text.translatable("key.gambling.hud.game.result", state.result());
-                context.drawTextWithShadow(textRenderer, resultLine, textX, textY, CHIP_COLOR);
+                Component resultLine = Component.translatable("key.gambling.hud.game.result", state.result());
+                context.text(font, resultLine, textX, textY, CHIP_COLOR);
             }
         }
     }
 
-    private static void renderPlayerHead(DrawContext context, MinecraftClient client, int x, int y) {
-        AbstractClientPlayerEntity player = client.player;
+    private static void renderPlayerHead(GuiGraphicsExtractor context, Minecraft client, int x, int y) {
+        AbstractClientPlayer player = client.player;
         if (player == null) {
             return;
         }
-        Identifier skin = player.getSkinTextures().texture();
-        context.drawTexture(skin, x, y, 8.0f, 8.0f, 8, 8, 64, 64);
+        Identifier skin = player.getSkin().body().texturePath();
+        context.blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 8.0f, 8.0f, 8, 8, 64, 64);
     }
 
-    private static Text stateLabel(PlayerState state) {
+    private static Component stateLabel(PlayerState state) {
         return switch (state) {
-            case AVAILABLE -> Text.translatable("key.gambling.hud.state.available");
-            case IN_GAME -> Text.translatable("key.gambling.hud.state.in_game");
-            case BETTING -> Text.translatable("key.gambling.hud.state.betting");
-            case FINALIZING -> Text.translatable("key.gambling.hud.state.finalizing");
+            case AVAILABLE -> Component.translatable("key.gambling.hud.state.available");
+            case IN_GAME -> Component.translatable("key.gambling.hud.state.in_game");
+            case BETTING -> Component.translatable("key.gambling.hud.state.betting");
+            case FINALIZING -> Component.translatable("key.gambling.hud.state.finalizing");
         };
     }
 }

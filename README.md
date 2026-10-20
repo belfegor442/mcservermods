@@ -3,7 +3,7 @@
 [![Gradle verification](https://github.com/belfegor442/mcservermods/actions/workflows/gradle.yml/badge.svg)](https://github.com/belfegor442/mcservermods/actions/workflows/gradle.yml)
 [![Release](https://github.com/belfegor442/mcservermods/actions/workflows/release.yml/badge.svg)](https://github.com/belfegor442/mcservermods/actions/workflows/release.yml)
 
-Fabric mod for Minecraft Java Edition 1.21.1, built with Java 21.
+Fabric mod for Minecraft Java Edition 26.2, built with Java 25.
 
 ## Current beta scope
 
@@ -21,9 +21,9 @@ CHIPS are fictional in-game points. They have no real-money value and cannot be 
 
 ## Requirements
 
-- Minecraft Java Edition 1.21.1
-- Fabric Loader and Fabric API compatible with 1.21.1
-- Java 21
+- Minecraft Java Edition 26.2
+- Fabric Loader and Fabric API compatible with 26.2
+- Java 25
 
 ## Player commands
 
@@ -54,7 +54,7 @@ Administrative commands require permission level 2: `/chips set`, `/chips add`, 
 
 ## Build and test
 
-Run from the repository root with Java 21 installed:
+Run from the repository root with Java 25 installed:
 
 ```sh
 ./gradlew --no-daemon clean test

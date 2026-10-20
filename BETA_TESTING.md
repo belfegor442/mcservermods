@@ -1,9 +1,9 @@
-# Beta 0.1.0-beta.7 — Test checklist
+# Beta 0.2.0-beta.1 — Test checklist
 
 ## Install
 
 1. Back up the world and the server's `config/gambling` directory.
-2. Install Minecraft Java 1.21.1, Fabric Loader, and Fabric API on the client and server.
+2. Install Minecraft Java 26.2, Fabric Loader, and Fabric API on the client and server (Java 25 or newer).
 3. Put the mod JAR in the server's `mods` folder. Install it on the client too for the custom HUD and translated client state.
 4. Start the server and confirm there are no mod initialization errors.
 5. Check that `config/gambling/gambling.json` was created and the defaults look right; restart after editing it.

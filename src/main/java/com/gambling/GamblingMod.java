@@ -16,7 +16,7 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +38,9 @@ public final class GamblingMod implements ModInitializer {
     }
 
     private static void registerPayloads() {
-        PayloadTypeRegistry.playS2C().register(ProfileSyncS2C.ID, ProfileSyncS2C.CODEC);
-        PayloadTypeRegistry.playS2C().register(GameStateSyncS2C.ID, GameStateSyncS2C.CODEC);
-        PayloadTypeRegistry.playC2S().register(BetRequestC2S.ID, BetRequestC2S.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(ProfileSyncS2C.ID, ProfileSyncS2C.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(GameStateSyncS2C.ID, GameStateSyncS2C.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(BetRequestC2S.ID, BetRequestC2S.CODEC);
     }
 
     private static void registerServerEvents() {
@@ -51,19 +51,19 @@ public final class GamblingMod implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             GamblingServerState state = GamblingServerState.get();
             if (state != null) {
-                state.onPlayerJoin(handler.getPlayer());
+                state.onPlayerJoin(handler.player);
             }
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             GamblingServerState state = GamblingServerState.get();
             if (state != null) {
-                state.onPlayerQuit(handler.getPlayer());
+                state.onPlayerQuit(handler.player);
             }
         });
 
         ServerPlayNetworking.registerGlobalReceiver(BetRequestC2S.ID, (payload, context) -> {
-            ServerPlayerEntity player = context.player();
+            ServerPlayer player = context.player();
             GamblingServerState state = GamblingServerState.get();
             if (state == null) {
                 return;
@@ -73,7 +73,7 @@ public final class GamblingMod implements ModInitializer {
                 state.replyResult(player, GameSessionManager.Result.error("key.gambling.error.invalid_bet"));
                 return;
             }
-            GameSessionManager.Result result = state.sessions().commitBet(player.getUuid(), amount);
+            GameSessionManager.Result result = state.sessions().commitBet(player.getUUID(), amount);
             state.replyResult(player, result);
         });
 
@@ -81,7 +81,7 @@ public final class GamblingMod implements ModInitializer {
             GamblingServerState state = GamblingServerState.get();
             int intervalTicks = GamblingConfig.get().autosaveSeconds() * TICKS_PER_SECOND;
             if (state != null && state.economy().isDirty()
-                    && server.getTicks() % intervalTicks == 0) {
+                    && server.getTickCount() % intervalTicks == 0) {
                 state.economy().save();
             }
         });

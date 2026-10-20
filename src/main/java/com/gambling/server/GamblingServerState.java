@@ -13,9 +13,9 @@ import com.gambling.network.GameStateSyncS2C;
 import com.gambling.network.ProfileSyncS2C;
 import com.gambling.util.Validation;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,30 +79,30 @@ public final class GamblingServerState {
         return roundLimiter;
     }
 
-    public void onPlayerJoin(ServerPlayerEntity player) {
-        PlayerProfile profile = economy.getOrCreate(player.getUuid(), player.getName().getString());
+    public void onPlayerJoin(ServerPlayer player) {
+        PlayerProfile profile = economy.getOrCreate(player.getUUID(), player.getName().getString());
         sendProfileSync(player, profile);
-        sendSessionSync(player, sessions.getSession(player.getUuid()));
+        sendSessionSync(player, sessions.getSession(player.getUUID()));
     }
 
-    public void onPlayerQuit(ServerPlayerEntity player) {
-        sessions.handleDisconnect(player.getUuid());
-        roundLimiter.clear(player.getUuid());
+    public void onPlayerQuit(ServerPlayer player) {
+        sessions.handleDisconnect(player.getUUID());
+        roundLimiter.clear(player.getUUID());
         if (economy.isDirty()) {
             economy.save();
         }
     }
 
-    public void sendFullSync(ServerPlayerEntity player) {
-        PlayerProfile profile = economy.getProfile(player.getUuid());
+    public void sendFullSync(ServerPlayer player) {
+        PlayerProfile profile = economy.getProfile(player.getUUID());
         if (profile == null) {
-            profile = economy.getOrCreate(player.getUuid(), player.getName().getString());
+            profile = economy.getOrCreate(player.getUUID(), player.getName().getString());
         }
         sendProfileSync(player, profile);
-        sendSessionSync(player, sessions.getSession(player.getUuid()));
+        sendSessionSync(player, sessions.getSession(player.getUUID()));
     }
 
-    public void sendProfileSync(ServerPlayerEntity player, PlayerProfile profile) {
+    public void sendProfileSync(ServerPlayer player, PlayerProfile profile) {
         if (!ServerPlayNetworking.canSend(player, ProfileSyncS2C.ID)) {
             return;
         }
@@ -114,7 +114,7 @@ public final class GamblingServerState {
                 Validation.clampNonNegative(profile.totalWagered())));
     }
 
-    public void sendSessionSync(ServerPlayerEntity player, GameSession session) {
+    public void sendSessionSync(ServerPlayer player, GameSession session) {
         if (!ServerPlayNetworking.canSend(player, GameStateSyncS2C.ID)) {
             return;
         }
@@ -130,13 +130,13 @@ public final class GamblingServerState {
         }
     }
 
-    public void replyResult(ServerPlayerEntity player, GameSessionManager.Result result) {
-        Text message = Text.translatable(result.messageKey(), result.args());
-        player.sendMessage(message, false);
+    public void replyResult(ServerPlayer player, GameSessionManager.Result result) {
+        Component message = Component.translatable(result.messageKey(), result.args());
+        player.sendSystemMessage(message);
     }
 
     private void onProfileChanged(java.util.UUID uuid, PlayerProfile profile) {
-        ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
+        ServerPlayer player = server.getPlayerList().getPlayer(uuid);
         if (player != null) {
             sendProfileSync(player, profile);
         }
@@ -153,7 +153,7 @@ public final class GamblingServerState {
             LOGGER.error("Could not persist balances for the session change; retrying on the next save.");
         }
         sessionStorage.save(sessions.snapshot());
-        ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
+        ServerPlayer player = server.getPlayerList().getPlayer(uuid);
         if (player != null) {
             sendSessionSync(player, session);
         }
