@@ -217,6 +217,42 @@ class EconomyManagerTest {
     }
 
     @Test
+    void findByNameMatchesCaseInsensitively(@TempDir Path dir) {
+        EconomyManager manager = createManager(dir);
+        UUID id = UUID.randomUUID();
+        manager.getOrCreate(id, "Steve");
+
+        PlayerProfile found = manager.findByName("steve");
+        assertNotNull(found);
+        assertEquals(id, found.uuid());
+        assertEquals("Steve", found.name());
+        assertNull(manager.findByName("Alex"));
+        assertNull(manager.findByName(null));
+        assertNull(manager.findByName(""));
+    }
+
+    @Test
+    void loadClampsChipsAboveTheCap(@TempDir Path dir) throws Exception {
+        UUID id = UUID.randomUUID();
+        java.nio.file.Files.writeString(dir.resolve("profiles.json"),
+                "{\"version\":1,\"players\":{\"" + id + "\":{\"name\":\"Greedy\",\"chips\":999999999999999999,\"xp\":0,\"totalWagered\":0}}}");
+        EconomyManager manager = createManager(dir);
+        assertEquals(Validation.MAX_ADMIN_AMOUNT, manager.getProfile(id).chips());
+    }
+
+    @Test
+    void loadKeepsProfileWithMissingName(@TempDir Path dir) throws Exception {
+        UUID id = UUID.randomUUID();
+        java.nio.file.Files.writeString(dir.resolve("profiles.json"),
+                "{\"version\":1,\"players\":{\"" + id + "\":{\"chips\":500,\"xp\":0,\"totalWagered\":0}}}");
+        EconomyManager manager = createManager(dir);
+        PlayerProfile profile = manager.getProfile(id);
+        assertNotNull(profile, "a missing name must not discard the balance");
+        assertEquals("Unknown", profile.name());
+        assertEquals(500L, profile.chips());
+    }
+
+    @Test
     void mapSnapshotSaveDoesNotLeakMutableState(@TempDir Path dir) {
         EconomyManager manager = createManager(dir);
         UUID id = UUID.randomUUID();

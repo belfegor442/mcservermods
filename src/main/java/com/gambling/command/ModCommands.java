@@ -53,13 +53,12 @@ public final class ModCommands {
                                     if (state == null) {
                                         return 0;
                                     }
-                                    String name = StringArgumentType.getString(ctx, "player");
-                                    ServerPlayerEntity target = ctx.getSource().getServer().getPlayerManager().getPlayer(name);
-                                    if (target == null) {
+                                    PlayerProfile profile = resolveTarget(state, ctx.getSource(),
+                                            StringArgumentType.getString(ctx, "player"));
+                                    if (profile == null) {
                                         ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.error.player_not_found"), false);
                                         return 0;
                                     }
-                                    PlayerProfile profile = state.economy().getOrCreate(target.getUuid(), name);
                                     ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.cmd.balance.other",
                                             profile.name(), ChipsFormat.format(profile.chips()), String.valueOf(profile.level())), true);
                                     return 1;
@@ -75,15 +74,15 @@ public final class ModCommands {
                                             }
                                             String name = StringArgumentType.getString(ctx, "player");
                                             long amount = LongArgumentType.getLong(ctx, "amount");
-                                            ServerPlayerEntity target = ctx.getSource().getServer().getPlayerManager().getPlayer(name);
+                                            PlayerProfile target = resolveTarget(state, ctx.getSource(), name);
                                             if (target == null) {
                                                 ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.error.player_not_found"), false);
                                                 return 0;
                                             }
-                                            boolean ok = state.economy().setChips(target.getUuid(), name, amount, "ADMIN_SET");
+                                            boolean ok = state.economy().setChips(target.uuid(), target.name(), amount, "ADMIN_SET");
                                             if (ok) {
                                                 ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.cmd.set",
-                                                        name, ChipsFormat.format(amount)), true);
+                                                        target.name(), ChipsFormat.format(amount)), true);
                                             }
                                             return ok ? 1 : 0;
                                         }))))
@@ -98,16 +97,16 @@ public final class ModCommands {
                                             }
                                             String name = StringArgumentType.getString(ctx, "player");
                                             long amount = LongArgumentType.getLong(ctx, "amount");
-                                            ServerPlayerEntity target = ctx.getSource().getServer().getPlayerManager().getPlayer(name);
+                                            PlayerProfile target = resolveTarget(state, ctx.getSource(), name);
                                             if (target == null) {
                                                 ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.error.player_not_found"), false);
                                                 return 0;
                                             }
-                                            boolean ok = state.economy().addChips(target.getUuid(), name, amount, "ADMIN_ADD");
+                                            boolean ok = state.economy().addChips(target.uuid(), target.name(), amount, "ADMIN_ADD");
                                             if (ok) {
-                                                PlayerProfile profile = state.economy().getProfile(target.getUuid());
+                                                PlayerProfile profile = state.economy().getProfile(target.uuid());
                                                 ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.cmd.add",
-                                                        ChipsFormat.format(amount), name,
+                                                        ChipsFormat.format(amount), target.name(),
                                                         ChipsFormat.format(profile != null ? profile.chips() : amount)), true);
                                             }
                                             return ok ? 1 : 0;
@@ -123,16 +122,16 @@ public final class ModCommands {
                                             }
                                             String name = StringArgumentType.getString(ctx, "player");
                                             long amount = LongArgumentType.getLong(ctx, "amount");
-                                            ServerPlayerEntity target = ctx.getSource().getServer().getPlayerManager().getPlayer(name);
+                                            PlayerProfile target = resolveTarget(state, ctx.getSource(), name);
                                             if (target == null) {
                                                 ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.error.player_not_found"), false);
                                                 return 0;
                                             }
-                                            boolean ok = state.economy().removeChips(target.getUuid(), name, amount, "ADMIN_REMOVE");
+                                            boolean ok = state.economy().removeChips(target.uuid(), target.name(), amount, "ADMIN_REMOVE");
                                             if (ok) {
-                                                PlayerProfile profile = state.economy().getProfile(target.getUuid());
+                                                PlayerProfile profile = state.economy().getProfile(target.uuid());
                                                 ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.cmd.remove",
-                                                        ChipsFormat.format(amount), name,
+                                                        ChipsFormat.format(amount), target.name(),
                                                         ChipsFormat.format(profile != null ? profile.chips() : 0)), true);
                                             } else {
                                                 ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.cmd.remove_failed"), false);
@@ -153,25 +152,22 @@ public final class ModCommands {
         if (state == null) {
             return 0;
         }
-        String name;
-        java.util.UUID uuid;
+        PlayerProfile profile;
         if (targetName == null) {
             ServerPlayerEntity self = source.getPlayer();
             if (self == null) {
+                source.sendError(Text.translatable("key.gambling.error.players_only"));
                 return 0;
             }
-            name = self.getName().getString();
-            uuid = self.getUuid();
+            profile = state.economy().getOrCreate(self.getUuid(), self.getName().getString());
         } else {
-            ServerPlayerEntity target = source.getServer().getPlayerManager().getPlayer(targetName);
-            if (target == null) {
+            profile = resolveTarget(state, source, targetName);
+            if (profile == null) {
                 source.sendFeedback(() -> Text.translatable("key.gambling.error.player_not_found"), false);
                 return 0;
             }
-            name = targetName;
-            uuid = target.getUuid();
         }
-        PlayerProfile profile = state.economy().getOrCreate(uuid, name);
+        java.util.UUID uuid = profile.uuid();
         GameSession session = state.sessions().getSession(uuid);
         source.sendFeedback(() -> Text.translatable("key.gambling.cmd.profile",
                 profile.name(),
@@ -187,6 +183,20 @@ public final class ModCommands {
             source.sendFeedback(() -> Text.translatable("key.gambling.cmd.session.none"), false);
         }
         return 1;
+    }
+
+    /**
+     * Resolves a command target by name: the online player if connected,
+     * otherwise the stored profile of an offline player. Returns null when
+     * neither exists (the profile is only created when the player joins).
+     */
+    private static PlayerProfile resolveTarget(GamblingServerState state, ServerCommandSource source,
+                                               String name) {
+        ServerPlayerEntity online = source.getServer().getPlayerManager().getPlayer(name);
+        if (online != null) {
+            return state.economy().getOrCreate(online.getUuid(), online.getName().getString());
+        }
+        return state.economy().findByName(name);
     }
 
     private static LiteralArgumentBuilder<ServerCommandSource> buildGamblingCommand() {

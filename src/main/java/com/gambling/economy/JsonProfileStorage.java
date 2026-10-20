@@ -67,7 +67,9 @@ public final class JsonProfileStorage {
                     try {
                         UUID uuid = UUID.fromString(entry.getKey());
                         JsonObject p = entry.getValue().getAsJsonObject();
-                        String name = p.get("name").getAsString();
+                        String name = p.has("name") && !p.get("name").isJsonNull()
+                                ? p.get("name").getAsString()
+                                : "Unknown";
                         long chips = p.get("chips").getAsLong();
                         long xp = p.has("xp") ? p.get("xp").getAsLong() : 0L;
                         long wagered = p.has("totalWagered") ? p.get("totalWagered").getAsLong() : 0L;

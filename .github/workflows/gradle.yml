@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -24,9 +28,7 @@ jobs:
           cache: gradle
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
-      - name: Run unit tests
-        run: ./gradlew --no-daemon clean test
-      - name: Build mod
+      - name: Build mod and run unit tests
         run: ./gradlew --no-daemon build
       - name: Upload mod JARs
         uses: actions/upload-artifact@v4

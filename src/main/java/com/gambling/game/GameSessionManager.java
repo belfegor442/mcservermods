@@ -57,11 +57,15 @@ public final class GameSessionManager {
                 continue;
             }
             if (session.state() == PlayerState.BETTING) {
+                // Refund regardless of the stored metadata: the stake is real.
                 if (Validation.isValidBet(session.bet())
                         && !economy.addChips(entry.getKey(), null, session.bet(), "CRASH_RECOVERY_REFUND")) {
                     LOGGER.error("Could not refund {} CHIPS for {} after restore.",
                             session.bet(), entry.getKey());
                 }
+                continue;
+            }
+            if (Validation.sanitizeGameType(session.gameType()) == null) {
                 continue;
             }
             sessions.put(entry.getKey(), session);

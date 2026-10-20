@@ -14,7 +14,7 @@ public final class PlayerProfile {
     public PlayerProfile(UUID uuid, String name, long chips, long xp, long totalWagered) {
         this.uuid = uuid;
         this.name = name;
-        this.chips = Math.max(0L, chips);
+        this.chips = Math.min(Math.max(0L, chips), Validation.MAX_ADMIN_AMOUNT);
         this.xp = Math.max(0L, xp);
         this.totalWagered = Math.max(0L, totalWagered);
     }

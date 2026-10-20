@@ -294,6 +294,15 @@ class GameSessionManagerTest {
     }
 
     @Test
+    void restoreDropsEntriesWithInvalidGameType() {
+        UUID corrupt = UUID.randomUUID();
+        GameSession bad = new GameSession(corrupt, "not a valid type!", 100, PlayerState.IN_GAME, "");
+        GameSessionManager restored = new GameSessionManager(economy);
+        restored.restoreSessions(Map.of(corrupt, bad));
+        assertNull(restored.getSession(corrupt));
+    }
+
+    @Test
     void cancelDoesNotDeduct() {
         long before = economy.getProfile(player).chips();
         sessions.startSession(player, "coinflip", 100);

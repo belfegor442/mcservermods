@@ -33,7 +33,7 @@ CHIPS are fictional in-game points. They have no real-money value and cannot be 
 
 After a casino round resolves, the result stays visible on the HUD until the next round starts or the player disconnects.
 
-Administrative commands require permission level 2: `/chips set`, `/chips add`, `/chips remove`, `/chips balance <player>`, `/chips profile <player>`, `/gambling start`, `/gambling bet`, `/gambling resolve`, and `/gambling finish`.
+Administrative commands require permission level 2: `/chips set`, `/chips add`, `/chips remove`, `/chips balance <player>`, `/chips profile <player>`, `/gambling start`, `/gambling bet`, `/gambling resolve`, and `/gambling finish`. Admin commands target online players first and fall back to the stored profile of an offline player by name.
 
 ## Build and test
 

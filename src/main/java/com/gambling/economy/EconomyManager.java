@@ -38,6 +38,22 @@ public final class EconomyManager {
         return p == null ? null : p.copy();
     }
 
+    /**
+     * Looks up a stored profile by player name (case-insensitive), so admin
+     * commands can also target players who are not currently online.
+     */
+    public synchronized PlayerProfile findByName(String name) {
+        if (name == null || name.isEmpty()) {
+            return null;
+        }
+        for (PlayerProfile profile : profiles.values()) {
+            if (profile.name().equalsIgnoreCase(name)) {
+                return profile.copy();
+            }
+        }
+        return null;
+    }
+
     public synchronized PlayerProfile getOrCreate(UUID uuid, String name) {
         PlayerProfile existing = profiles.get(uuid);
         if (existing == null) {
