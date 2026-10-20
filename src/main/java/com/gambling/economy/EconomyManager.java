@@ -2,8 +2,8 @@ package com.gambling.economy;
 
 import com.gambling.util.Validation;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,7 +15,7 @@ public final class EconomyManager {
     private final Map<UUID, PlayerProfile> profiles = new ConcurrentHashMap<>();
     private final JsonProfileStorage storage;
     private final TransactionLog transactionLog;
-    private final List<BiConsumer<UUID, PlayerProfile>> changeListeners = new ArrayList<>();
+    private final List<BiConsumer<UUID, PlayerProfile>> changeListeners = new CopyOnWriteArrayList<>();
     private final long defaultChips;
     private volatile boolean dirty;
 

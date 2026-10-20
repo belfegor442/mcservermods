@@ -20,24 +20,51 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Crash-recovery storage for active game sessions. Sessions are transient by
- * nature, so a missing or corrupt file simply restores to "no sessions".
+ * Crash-recovery storage for active game sessions. A corrupt file falls back
+ * to the last good {@code sessions.json.bak} copy so committed (BETTING)
+ * stakes are still refunded on restore; if nothing is readable the server
+ * restores to "no sessions" and the corrupt file is quarantined.
  */
 public final class JsonSessionStorage {
     private static final Logger LOGGER = LoggerFactory.getLogger("gambling-session-storage");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private final Path file;
+    private final Path backupFile;
 
     public JsonSessionStorage(Path file) {
         this.file = file;
+        this.backupFile = file.resolveSibling(file.getFileName() + ".bak");
     }
 
     public Map<UUID, GameSession> load() {
-        if (!Files.exists(file)) {
+        Map<UUID, GameSession> sessions = loadFromFile(file);
+        if (sessions != null) {
+            return sessions;
+        }
+        if (Files.exists(file)) {
+            LOGGER.warn("Primary session file {} is corrupt; trying backup.", file);
+            Map<UUID, GameSession> backup = loadFromFile(backupFile);
+            if (backup != null) {
+                LOGGER.info("Restored sessions from backup {}.", backupFile);
+                return backup;
+            }
+            quarantineCorruptFile();
             return new HashMap<>();
         }
-        try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+        Map<UUID, GameSession> backup = loadFromFile(backupFile);
+        if (backup != null) {
+            LOGGER.info("Primary session file missing; restored from backup {}.", backupFile);
+            return backup;
+        }
+        return new HashMap<>();
+    }
+
+    private Map<UUID, GameSession> loadFromFile(Path path) {
+        if (!Files.exists(path)) {
+            return null;
+        }
+        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
             JsonObject players = root.getAsJsonObject("players");
             Map<UUID, GameSession> sessions = new HashMap<>();
@@ -58,8 +85,18 @@ public final class JsonSessionStorage {
             }
             return sessions;
         } catch (Exception e) {
-            LOGGER.error("Failed to load sessions from {}: {}", file, e.toString());
-            return new HashMap<>();
+            LOGGER.error("Failed to load sessions from {}: {}", path, e.toString());
+            return null;
+        }
+    }
+
+    private void quarantineCorruptFile() {
+        Path quarantine = file.resolveSibling(file.getFileName() + ".corrupt-" + System.currentTimeMillis());
+        try {
+            Files.move(file, quarantine, StandardCopyOption.REPLACE_EXISTING);
+            LOGGER.warn("Quarantined corrupt session file to {}.", quarantine);
+        } catch (IOException e) {
+            LOGGER.error("Could not quarantine corrupt session file {}: {}", file, e.toString());
         }
     }
 
@@ -83,6 +120,9 @@ public final class JsonSessionStorage {
             Path temp = file.resolveSibling(file.getFileName() + ".tmp");
             try (Writer writer = Files.newBufferedWriter(temp, StandardCharsets.UTF_8)) {
                 GSON.toJson(root, writer);
+            }
+            if (Files.exists(file)) {
+                Files.copy(file, backupFile, StandardCopyOption.REPLACE_EXISTING);
             }
             try {
                 Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);

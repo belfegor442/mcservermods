@@ -202,6 +202,11 @@ public final class ModCommands {
     private static LiteralArgumentBuilder<ServerCommandSource> buildGamblingCommand() {
         long maxBet = com.gambling.config.GamblingConfig.get().maxBet();
         return literal("gambling")
+                .executes(ctx -> {
+                    ctx.getSource().sendFeedback(
+                            () -> Text.translatable("key.gambling.help"), false);
+                    return 1;
+                })
                 .then(literal("start")
                         // Demo/debug flow: resolving a round requires op, so only
                         // operators may open sessions outside the casino games.

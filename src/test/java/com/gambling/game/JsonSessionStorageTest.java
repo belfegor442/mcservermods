@@ -52,4 +52,53 @@ class JsonSessionStorageTest {
         assertEquals(PlayerState.FINALIZING, loaded.state());
         assertEquals("17 RED — WIN", loaded.result());
     }
+
+    @Test
+    void corruptPrimaryFallsBackToBackup(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("sessions.json");
+        JsonSessionStorage storage = new JsonSessionStorage(file);
+        UUID player = UUID.randomUUID();
+        assertTrue(storage.save(Map.of(player,
+                new GameSession(player, "slots", 25, PlayerState.BETTING, ""))));
+        assertTrue(storage.save(Map.of(player,
+                new GameSession(player, "slots", 999, PlayerState.BETTING, ""))));
+        assertTrue(java.nio.file.Files.exists(dir.resolve("sessions.json.bak")),
+                "saving over an existing file must keep the previous copy");
+
+        java.nio.file.Files.writeString(file, "{{{ broken");
+        GameSession restored = storage.load().get(player);
+        assertNotNull(restored, "the backup must restore the committed stake");
+        assertEquals(25L, restored.bet());
+        assertEquals(PlayerState.BETTING, restored.state());
+    }
+
+    @Test
+    void missingPrimaryFallsBackToBackup(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("sessions.json");
+        JsonSessionStorage storage = new JsonSessionStorage(file);
+        UUID player = UUID.randomUUID();
+        assertTrue(storage.save(Map.of(player,
+                new GameSession(player, "coinflip", 40, PlayerState.IN_GAME, ""))));
+        assertTrue(storage.save(Map.of(player,
+                new GameSession(player, "coinflip", 60, PlayerState.IN_GAME, ""))));
+        java.nio.file.Files.delete(file);
+
+        assertEquals(40L, storage.load().get(player).bet());
+    }
+
+    @Test
+    void corruptFileWithoutBackupIsQuarantined(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("sessions.json");
+        java.nio.file.Files.writeString(file, "not json");
+        JsonSessionStorage storage = new JsonSessionStorage(file);
+        assertTrue(storage.load().isEmpty());
+
+        try (var entries = java.nio.file.Files.list(dir)) {
+            boolean quarantined = entries.anyMatch(p ->
+                    p.getFileName().toString().startsWith("sessions.json.corrupt-"));
+            assertTrue(quarantined, "the corrupt file must be preserved for inspection");
+        }
+        assertTrue(!java.nio.file.Files.exists(file),
+                "the corrupt file must not be retried on the next load");
+    }
 }

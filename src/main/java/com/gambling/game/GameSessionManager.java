@@ -5,8 +5,8 @@ import com.gambling.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,7 +27,7 @@ public final class GameSessionManager {
 
     private final Map<UUID, GameSession> sessions = new ConcurrentHashMap<>();
     private final EconomyManager economy;
-    private final List<BiConsumer<UUID, GameSession>> changeListeners = new ArrayList<>();
+    private final List<BiConsumer<UUID, GameSession>> changeListeners = new CopyOnWriteArrayList<>();
 
     public GameSessionManager(EconomyManager economy) {
         this.economy = economy;

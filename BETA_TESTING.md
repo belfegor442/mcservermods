@@ -1,4 +1,4 @@
-# Beta 0.1.0-beta.5 — Test checklist
+# Beta 0.1.0-beta.6 — Test checklist
 
 ## Install
 
@@ -18,7 +18,7 @@
 - `/casino slots 10` displays three symbols from a seven-symbol reel set. A pair returns 20 CHIPS, a non-SEVEN triple returns 80 CHIPS, and three SEVEN symbols return 200 CHIPS.
 - After a round, the HUD keeps showing the game, bet, and result until the next round starts or the player disconnects.
 - Running two casino rounds back-to-back faster than `roundCooldownMillis` (default 1 s) shows the cooldown message; after waiting, the round starts.
-- `/gambling help` lists the commands.
+- `/gambling help` and plain `/gambling` list the commands.
 - Plain `/casino` and `/casino help` list all three games.
 - Bets above the current balance fail without making the balance negative.
 - A second game cannot start while a session is active.
@@ -28,6 +28,7 @@
 - Force a win with `/gambling resolve win` while the balance is at the cap: the stake is refunded and the session ends instead of getting stuck.
 - Restart the server and verify the balance persists.
 - Kill the server (not a clean stop) right after `/gambling bet` (op demo flow) and verify that restarting refunds the stake.
+- Corrupt `config/gambling/sessions.json` (make it invalid JSON) while a session file has a `.bak`: restarting loads the backup and refunds committed bets; the corrupt file is quarantined as `sessions.json.corrupt-*`.
 - Test both English and Spanish game messages.
 
 ## Known beta limitations

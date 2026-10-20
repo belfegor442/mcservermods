@@ -9,7 +9,7 @@ Fabric mod for Minecraft Java Edition 1.21.1, built with Java 21.
 
 - Server-authoritative virtual CHIPS balances and player profiles.
 - Persistent JSON profiles, transaction log, periodic saves, and balance/profile synchronization.
-- Crash recovery: active sessions are persisted and any unresolved bet is refunded automatically on the next startup.
+- Crash recovery: active sessions are persisted and any unresolved bet is refunded automatically on the next startup. Both `profiles.json` and `sessions.json` keep a `.bak` copy: a corrupt or lost primary file falls back to the backup, and unreadable files are quarantined as `*.corrupt-<timestamp>` instead of being overwritten.
 - Economy safety: balances loaded from disk are clamped to the cap, and a win that would exceed the cap refunds the stake instead of locking the session.
 - The transaction log rotates at 10 MB so it cannot grow without bound.
 - Playable coin-flip, European roulette, and three-reel slots games, with server-side randomness and game-specific payouts.
@@ -63,7 +63,7 @@ Run from the repository root with Java 21 installed:
 
 On Windows, use `gradlew.bat` instead. GitHub Actions runs the same verification on pushes to `main` and `fix/**`, pull requests targeting `main`, and manual dispatches; the JARs and an HTML coverage report (JaCoCo) are uploaded as run artifacts.
 
-Pushing a tag starting with `v` (for example `v0.1.0-beta.5`) triggers the release workflow, which builds the mod and publishes a GitHub release containing the mod JARs.
+Pushing a tag starting with `v` (for example `v0.1.0-beta.6`) triggers the release workflow, which builds the mod and publishes a GitHub release containing the mod JARs.
 
 ## Beta limitations
 
