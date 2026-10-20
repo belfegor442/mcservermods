@@ -1,5 +1,6 @@
 plugins {
     id 'fabric-loom' version '1.9.2'
+    id 'jacoco'
 }
 
 version = project.mod_version
@@ -45,5 +46,18 @@ test {
     useJUnitPlatform()
     testLogging {
         events 'passed', 'skipped', 'failed'
+    }
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    toolVersion = '0.8.12'
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
     }
 }
