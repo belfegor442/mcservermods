@@ -39,7 +39,11 @@ public final class EconomyManager {
         changeListeners.add(listener);
     }
 
-    public PlayerProfile getProfile(UUID uuid) {
+    /**
+     * Coherent snapshot: synchronized so the immutable copy cannot mix fields
+     * read at different times while a mutator updates the same profile.
+     */
+    public synchronized PlayerProfile getProfile(UUID uuid) {
         PlayerProfile p = profiles.get(uuid);
         return p == null ? null : p.copy();
     }
