@@ -7,6 +7,8 @@ Fabric mod for Minecraft Java Edition 1.21.1, built with Java 21.
 - Server-authoritative virtual CHIPS balances and player profiles.
 - Persistent JSON profiles, transaction log, periodic saves, and balance/profile synchronization.
 - Crash recovery: active sessions are persisted and any unresolved bet is refunded automatically on the next startup.
+- Economy safety: balances loaded from disk are clamped to the cap, and a win that would exceed the cap refunds the stake instead of locking the session.
+- The transaction log rotates at 10 MB so it cannot grow without bound.
 - Playable coin-flip, European roulette, and three-reel slots games, with server-side randomness and game-specific payouts.
 - A lightweight HUD showing the player's balance, level, and active round state.
 - English and Spanish messages.

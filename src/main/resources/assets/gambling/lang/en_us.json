@@ -29,7 +29,7 @@
   "key.gambling.error.invalid_state": "That action is not allowed in the current round state.",
   "key.gambling.error.invalid_bet": "Invalid bet amount.",
   "key.gambling.error.insufficient_funds": "Not enough CHIPS.",
-  "key.gambling.error.payout_failed": "The payout could not be credited. The bet remains recoverable.",
+  "key.gambling.error.payout_refunded": "The payout would exceed the balance cap. Your stake was refunded.",
   "key.gambling.error.bet_mismatch": "Bet amount does not match the session bet.",
   "key.gambling.error.not_ready": "The gambling system is not ready.",
   "key.gambling.error.player_not_found": "Player not found or not online.",

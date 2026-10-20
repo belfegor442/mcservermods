@@ -77,7 +77,9 @@ public final class GamblingServerState {
 
     public void onPlayerQuit(ServerPlayerEntity player) {
         sessions.handleDisconnect(player.getUuid());
-        economy.save();
+        if (economy.isDirty()) {
+            economy.save();
+        }
     }
 
     public void sendFullSync(ServerPlayerEntity player) {

@@ -1,4 +1,4 @@
-# Beta 0.1.0-beta.3 — Test checklist
+# Beta 0.1.0-beta.4 — Test checklist
 
 ## Install
 
@@ -22,6 +22,7 @@
 - Disconnecting with a committed but unresolved bet refunds the stake.
 - After reconnecting, the balance and level remain synchronized.
 - Admin commands (`/chips balance|set|add|remove|profile <player>`) also work with the name of an offline player who has joined before.
+- Force a win with `/gambling resolve win` while the balance is at the cap: the stake is refunded and the session ends instead of getting stuck.
 - Restart the server and verify the balance persists.
 - Kill the server (not a clean stop) right after `/gambling bet` (op demo flow) and verify that restarting refunds the stake.
 - Test both English and Spanish game messages.

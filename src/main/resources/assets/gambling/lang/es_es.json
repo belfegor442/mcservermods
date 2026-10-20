@@ -29,7 +29,7 @@
   "key.gambling.error.invalid_state": "Esa acción no está permitida en el estado actual de la ronda.",
   "key.gambling.error.invalid_bet": "Cantidad de apuesta no válida.",
   "key.gambling.error.insufficient_funds": "No tienes suficientes CHIPS.",
-  "key.gambling.error.payout_failed": "No se pudo abonar el premio. La apuesta sigue siendo recuperable.",
+  "key.gambling.error.payout_refunded": "El premio superaría el límite de saldo. Se reembolsó tu apuesta.",
   "key.gambling.error.bet_mismatch": "La apuesta no coincide con la de la sesión.",
   "key.gambling.error.not_ready": "El sistema de juego no está listo.",
   "key.gambling.error.player_not_found": "Jugador no encontrado o no conectado.",

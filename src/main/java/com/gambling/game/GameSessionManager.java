@@ -134,7 +134,15 @@ public final class GameSessionManager {
         }
         long payout = win ? session.bet() * payoutMultiplier : 0L;
         if (win && !economy.addChips(playerId, null, payout, "PAYOUT")) {
-            return Result.error("key.gambling.error.payout_failed");
+            // The payout cannot be credited (balance cap). Refund the stake and
+            // close the session instead of leaving the player stuck in BETTING.
+            if (!economy.addChips(playerId, null, session.bet(), "PAYOUT_FAIL_REFUND")) {
+                LOGGER.error("Could not refund {} CHIPS to {} after failed payout.",
+                        session.bet(), playerId);
+            }
+            sessions.remove(playerId);
+            fireChanged(playerId, null);
+            return Result.error("key.gambling.error.payout_refunded");
         }
         economy.addWager(playerId, session.bet());
         String resultText = Validation.sanitizeResult(rawResult);

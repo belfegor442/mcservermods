@@ -122,7 +122,7 @@ class GameSessionManagerTest {
     }
 
     @Test
-    void failedPayoutDoesNotResolveRoundOrLoseStake() {
+    void failedPayoutRefundsStakeAndEndsSession() {
         economy.setChips(player, "Steve", com.gambling.util.Validation.MAX_ADMIN_AMOUNT, "TEST");
         assertTrue(sessions.startSession(player, "coinflip", 100).ok());
         assertTrue(sessions.commitBet(player, 100).ok());
@@ -131,10 +131,12 @@ class GameSessionManagerTest {
         GameSessionManager.Result result = sessions.resolveRound(player, true, "heads");
 
         assertFalse(result.ok());
-        assertEquals("key.gambling.error.payout_failed", result.messageKey());
-        assertEquals(afterStake, economy.getProfile(player).chips());
-        assertEquals(PlayerState.BETTING, sessions.getSession(player).state());
+        assertEquals("key.gambling.error.payout_refunded", result.messageKey());
+        assertEquals(com.gambling.util.Validation.MAX_ADMIN_AMOUNT, economy.getProfile(player).chips(),
+                "the stake must be refunded when the payout exceeds the cap");
+        assertNull(sessions.getSession(player), "the session must not leave the player stuck in BETTING");
         assertEquals(0L, economy.getProfile(player).totalWagered());
+        assertTrue(afterStake < economy.getProfile(player).chips());
     }
 
     @Test
