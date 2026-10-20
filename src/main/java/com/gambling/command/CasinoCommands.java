@@ -25,7 +25,11 @@ public final class CasinoCommands {
 
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            var casino = literal("casino");
+            var casino = literal("casino").executes(context -> {
+                context.getSource().sendFeedback(
+                        () -> Text.translatable("key.gambling.casino.help"), false);
+                return 1;
+            });
             casino.then(literal("coinflip")
                     .then(argument("bet", LongArgumentType.longArg(1, Validation.MAX_BET))
                             .then(argument("side", StringArgumentType.word())
@@ -79,7 +83,7 @@ public final class CasinoCommands {
 
         GamblingServerState state = GamblingServerState.get();
         if (state == null) {
-            source.sendError(Text.literal("Casino system is not ready."));
+            source.sendError(Text.translatable("key.gambling.error.not_ready"));
             return 0;
         }
 
@@ -99,6 +103,8 @@ public final class CasinoCommands {
 
         String resultSide = RANDOM.nextBoolean() ? "heads" : "tails";
         boolean won = chosenSide.equals(resultSide);
+        // The round stays in FINALIZING (visible on the HUD) and is closed
+        // automatically when the next session starts or the player disconnects.
         GameSessionManager.Result resolved = sessions.resolveRound(player.getUuid(), won,
                 resultSide.toUpperCase(Locale.ROOT) + (won ? " — WIN" : " — LOSS"));
         if (!resolved.ok()) {
@@ -118,11 +124,6 @@ public final class CasinoCommands {
                     resultSide,
                     chosenSide));
         }
-        GameSessionManager.Result finished = sessions.finishSession(player.getUuid());
-        if (!finished.ok()) {
-            state.replyResult(player, finished);
-            return 0;
-        }
         return 1;
     }
     private static int playRoulette(net.minecraft.server.command.ServerCommandSource source, long bet, String rawColor) {
@@ -139,7 +140,7 @@ public final class CasinoCommands {
 
         GamblingServerState state = GamblingServerState.get();
         if (state == null) {
-            source.sendError(Text.literal("Casino system is not ready."));
+            source.sendError(Text.translatable("key.gambling.error.not_ready"));
             return 0;
         }
 
@@ -183,11 +184,6 @@ public final class CasinoCommands {
                     resultColor,
                     chosenColor));
         }
-        GameSessionManager.Result finished = sessions.finishSession(player.getUuid());
-        if (!finished.ok()) {
-            state.replyResult(player, finished);
-            return 0;
-        }
         return 1;
     }
 
@@ -199,7 +195,7 @@ public final class CasinoCommands {
         }
         GamblingServerState state = GamblingServerState.get();
         if (state == null) {
-            source.sendError(Text.literal("Casino system is not ready."));
+            source.sendError(Text.translatable("key.gambling.error.not_ready"));
             return 0;
         }
 
@@ -246,12 +242,6 @@ public final class CasinoCommands {
                     symbols[first],
                     symbols[second],
                     symbols[third]));
-        }
-
-        GameSessionManager.Result finished = sessions.finishSession(player.getUuid());
-        if (!finished.ok()) {
-            state.replyResult(player, finished);
-            return 0;
         }
         return 1;
     }

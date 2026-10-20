@@ -1,13 +1,15 @@
 package com.gambling.economy;
 
+import com.gambling.util.Validation;
+
 import java.util.UUID;
 
 public final class PlayerProfile {
     private final UUID uuid;
-    private String name;
-    private long chips;
-    private long xp;
-    private long totalWagered;
+    private volatile String name;
+    private volatile long chips;
+    private volatile long xp;
+    private volatile long totalWagered;
 
     public PlayerProfile(UUID uuid, String name, long chips, long xp, long totalWagered) {
         this.uuid = uuid;
@@ -50,8 +52,8 @@ public final class PlayerProfile {
     }
 
     void addChips(long amount) {
-        long sum = com.gambling.util.Validation.safeAdd(this.chips, amount);
-        this.chips = Math.min(sum, com.gambling.util.Validation.MAX_ADMIN_AMOUNT);
+        long sum = Validation.safeAdd(this.chips, amount);
+        this.chips = Math.min(sum, Validation.MAX_ADMIN_AMOUNT);
     }
 
     boolean subtractChips(long amount) {
@@ -63,8 +65,8 @@ public final class PlayerProfile {
     }
 
     void addWager(long wagered) {
-        this.totalWagered = com.gambling.util.Validation.safeAdd(this.totalWagered, wagered);
-        this.xp = com.gambling.util.Validation.safeAdd(this.xp, wagered);
+        this.totalWagered = Validation.safeAdd(this.totalWagered, wagered);
+        this.xp = Validation.safeAdd(this.xp, wagered);
     }
 
     public PlayerProfile copy() {

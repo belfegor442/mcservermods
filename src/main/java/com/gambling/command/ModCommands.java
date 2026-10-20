@@ -33,6 +33,7 @@ public final class ModCommands {
                 .executes(ctx -> {
                     ServerPlayerEntity player = ctx.getSource().getPlayer();
                     if (player == null) {
+                        ctx.getSource().sendError(Text.translatable("key.gambling.error.players_only"));
                         return 0;
                     }
                     GamblingServerState state = requireState(ctx.getSource());
@@ -55,7 +56,7 @@ public final class ModCommands {
                                     String name = StringArgumentType.getString(ctx, "player");
                                     ServerPlayerEntity target = ctx.getSource().getServer().getPlayerManager().getPlayer(name);
                                     if (target == null) {
-                                        ctx.getSource().sendFeedback(() -> Text.literal("Player not found or not online."), false);
+                                        ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.error.player_not_found"), false);
                                         return 0;
                                     }
                                     PlayerProfile profile = state.economy().getOrCreate(target.getUuid(), name);
@@ -76,7 +77,7 @@ public final class ModCommands {
                                             long amount = LongArgumentType.getLong(ctx, "amount");
                                             ServerPlayerEntity target = ctx.getSource().getServer().getPlayerManager().getPlayer(name);
                                             if (target == null) {
-                                                ctx.getSource().sendFeedback(() -> Text.literal("Player not found or not online."), false);
+                                                ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.error.player_not_found"), false);
                                                 return 0;
                                             }
                                             boolean ok = state.economy().setChips(target.getUuid(), name, amount, "ADMIN_SET");
@@ -99,7 +100,7 @@ public final class ModCommands {
                                             long amount = LongArgumentType.getLong(ctx, "amount");
                                             ServerPlayerEntity target = ctx.getSource().getServer().getPlayerManager().getPlayer(name);
                                             if (target == null) {
-                                                ctx.getSource().sendFeedback(() -> Text.literal("Player not found or not online."), false);
+                                                ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.error.player_not_found"), false);
                                                 return 0;
                                             }
                                             boolean ok = state.economy().addChips(target.getUuid(), name, amount, "ADMIN_ADD");
@@ -124,7 +125,7 @@ public final class ModCommands {
                                             long amount = LongArgumentType.getLong(ctx, "amount");
                                             ServerPlayerEntity target = ctx.getSource().getServer().getPlayerManager().getPlayer(name);
                                             if (target == null) {
-                                                ctx.getSource().sendFeedback(() -> Text.literal("Player not found or not online."), false);
+                                                ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.error.player_not_found"), false);
                                                 return 0;
                                             }
                                             boolean ok = state.economy().removeChips(target.getUuid(), name, amount, "ADMIN_REMOVE");
@@ -164,7 +165,7 @@ public final class ModCommands {
         } else {
             ServerPlayerEntity target = source.getServer().getPlayerManager().getPlayer(targetName);
             if (target == null) {
-                source.sendFeedback(() -> Text.literal("Player not found or not online."), false);
+                source.sendFeedback(() -> Text.translatable("key.gambling.error.player_not_found"), false);
                 return 0;
             }
             name = targetName;
@@ -182,6 +183,8 @@ public final class ModCommands {
             GameSession s = session;
             source.sendFeedback(() -> Text.translatable("key.gambling.cmd.session",
                     s.gameType(), ChipsFormat.format(s.bet()), s.state().id(), s.result()), false);
+        } else {
+            source.sendFeedback(() -> Text.translatable("key.gambling.cmd.session.none"), false);
         }
         return 1;
     }
@@ -189,6 +192,9 @@ public final class ModCommands {
     private static LiteralArgumentBuilder<ServerCommandSource> buildGamblingCommand() {
         return literal("gambling")
                 .then(literal("start")
+                        // Demo/debug flow: resolving a round requires op, so only
+                        // operators may open sessions outside the casino games.
+                        .requires(src -> src.hasPermissionLevel(2))
                         .then(argument("game", StringArgumentType.word())
                                 .then(argument("bet", LongArgumentType.longArg(1, Validation.MAX_BET))
                                         .executes(ctx -> {
@@ -205,6 +211,7 @@ public final class ModCommands {
                                             return result.ok() ? 1 : 0;
                                         }))))
                 .then(literal("bet")
+                        .requires(src -> src.hasPermissionLevel(2))
                         .executes(ctx -> {
                             ServerPlayerEntity player = ctx.getSource().getPlayer();
                             GamblingServerState state = requireState(ctx.getSource());
@@ -292,7 +299,7 @@ public final class ModCommands {
     private static GamblingServerState requireState(ServerCommandSource source) {
         GamblingServerState state = GamblingServerState.get();
         if (state == null) {
-            source.sendFeedback(() -> Text.literal("Gambling system is not ready."), false);
+            source.sendFeedback(() -> Text.translatable("key.gambling.error.not_ready"), false);
         }
         return state;
     }

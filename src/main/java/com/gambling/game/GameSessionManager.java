@@ -2,6 +2,8 @@ package com.gambling.game;
 
 import com.gambling.economy.EconomyManager;
 import com.gambling.util.Validation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
 public final class GameSessionManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger("gambling-sessions");
+
     public record Result(boolean ok, String messageKey, Object... args) {
         public static Result success(String key, Object... args) {
             return new Result(true, key, args);
@@ -42,8 +46,15 @@ public final class GameSessionManager {
         if (gameType == null || !Validation.isValidBet(bet)) {
             return Result.error("key.gambling.error.invalid_bet");
         }
-        if (sessions.containsKey(playerId)) {
-            return Result.error("key.gambling.error.already_in_game");
+        GameSession existing = sessions.get(playerId);
+        if (existing != null) {
+            if (existing.state() != PlayerState.FINALIZING) {
+                return Result.error("key.gambling.error.already_in_game");
+            }
+            // The previous round is settled and only lingering so the player can
+            // see its result. Close it silently before opening the new session.
+            sessions.remove(playerId);
+            fireChanged(playerId, null);
         }
         var profile = economy.getProfile(playerId);
         if (profile == null || profile.chips() < bet) {
@@ -52,7 +63,7 @@ public final class GameSessionManager {
         GameSession session = new GameSession(playerId, gameType, bet, PlayerState.IN_GAME, "");
         sessions.put(playerId, session);
         fireChanged(playerId, session);
-        return Result.success("key.gambling.cmd.started", gameType, Validation.sanitizeResult(Long.toString(bet)));
+        return Result.success("key.gambling.cmd.started", gameType, Long.toString(bet));
     }
 
     public synchronized Result commitBet(UUID playerId, long clientAmount) {
@@ -128,7 +139,7 @@ public final class GameSessionManager {
         }
         sessions.remove(playerId);
         fireChanged(playerId, null);
-        return Result.success("key.gambling.cmd.cancelled", "");
+        return Result.success("key.gambling.cmd.cancelled");
     }
 
     public synchronized void handleDisconnect(UUID playerId) {
@@ -138,8 +149,10 @@ public final class GameSessionManager {
         }
         // A confirmed bet has already been deducted. If the player leaves before
         // the round is resolved, return the stake rather than silently destroying it.
-        if (session.state() == PlayerState.BETTING) {
-            economy.addChips(playerId, null, session.bet(), "DISCONNECT_REFUND");
+        if (session.state() == PlayerState.BETTING
+                && !economy.addChips(playerId, null, session.bet(), "DISCONNECT_REFUND")) {
+            LOGGER.error("Could not refund {} CHIPS to {} on disconnect.",
+                    session.bet(), playerId);
         }
         sessions.remove(playerId);
         fireChanged(playerId, null);

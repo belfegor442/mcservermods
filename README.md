@@ -22,14 +22,17 @@ CHIPS are fictional in-game points. They have no real-money value and cannot be 
 ## Player commands
 
 - `/chips` — show your CHIPS balance and level.
-- `/casino help` — show available casino commands.
+- `/chips profile` — show your full profile, including the active session (if any).
+- `/casino help` (or plain `/casino`) — show available casino commands.
 - `/casino coinflip <bet> <heads|tails>` — wager CHIPS on a server-randomized coin flip. A win returns 2× the stake; a loss forfeits the stake.
 - `/casino roulette <bet> <red|black|green>` — single-zero European roulette. Red/black wins return 2× the stake; a green/zero win returns 36× the stake.
 - `/casino slots <bet>` — three-reel slots. Any pair returns 2×, a triple returns 8×, and three SEVEN symbols return 20× the stake.
+- `/gambling cancel` — abandon a session before committing the bet.
 - `/gambling sync` — request a profile/HUD resynchronization.
-- `/gambling session` — inspect the current session, if any.
 
-Administrative economy commands require permission level 2: `/chips set`, `/chips add`, `/chips remove`, and `/chips balance <player>`.
+After a casino round resolves, the result stays visible on the HUD until the next round starts or the player disconnects.
+
+Administrative commands require permission level 2: `/chips set`, `/chips add`, `/chips remove`, `/chips balance <player>`, `/chips profile <player>`, `/gambling start`, `/gambling bet`, `/gambling resolve`, and `/gambling finish`.
 
 ## Build and test
 

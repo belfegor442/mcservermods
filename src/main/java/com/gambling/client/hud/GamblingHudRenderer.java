@@ -63,7 +63,7 @@ public final class GamblingHudRenderer {
             }
         }
 
-        int headOffset = client.player != null ? HEAD_SIZE + 3 : 0;
+        int headOffset = HEAD_SIZE + 3;
         int panelWidth = width + PADDING * 2 + headOffset;
         int lines = 3 + (state.hasSession() ? (state.result().isEmpty() ? 3 : 4) : 0);
         int panelHeight = lines * LINE_HEIGHT + PADDING * 2;

@@ -217,6 +217,52 @@ class GameSessionManagerTest {
     }
 
     @Test
+    void resolveResultStaysVisibleUntilNextStart() {
+        sessions.startSession(player, "coinflip", 100);
+        sessions.commitBet(player, 100);
+        sessions.resolveRound(player, true, "heads");
+
+        GameSession lingering = sessions.getSession(player);
+        assertNotNull(lingering, "a resolved round must linger so the HUD can show its result");
+        assertEquals(PlayerState.FINALIZING, lingering.state());
+        assertEquals("heads", lingering.result());
+    }
+
+    @Test
+    void startSessionReplacesResolvedFinalizingSession() {
+        sessions.startSession(player, "coinflip", 100);
+        sessions.commitBet(player, 100);
+        sessions.resolveRound(player, true, "heads");
+
+        GameSessionManager.Result started = sessions.startSession(player, "slots", 50);
+
+        assertTrue(started.ok());
+        GameSession session = sessions.getSession(player);
+        assertEquals("slots", session.gameType());
+        assertEquals(PlayerState.IN_GAME, session.state());
+        assertEquals("", session.result());
+    }
+
+    @Test
+    void startSessionRejectsWhileBettingUnresolved() {
+        sessions.startSession(player, "coinflip", 100);
+        sessions.commitBet(player, 100);
+
+        GameSessionManager.Result started = sessions.startSession(player, "slots", 50);
+
+        assertFalse(started.ok());
+        assertEquals("key.gambling.error.already_in_game", started.messageKey());
+        assertEquals(PlayerState.BETTING, sessions.getSession(player).state());
+    }
+
+    @Test
+    void gameSessionNormalizesNullFields() {
+        GameSession session = new GameSession(player, null, 10, PlayerState.IN_GAME, null);
+        assertEquals("", session.gameType());
+        assertEquals("", session.result());
+    }
+
+    @Test
     void cancelDoesNotDeduct() {
         long before = economy.getProfile(player).chips();
         sessions.startSession(player, "coinflip", 100);

@@ -61,6 +61,13 @@ class ValidationTest {
     }
 
     @Test
+    void safeAddHandlesNegativeOperands() {
+        assertEquals(Long.MIN_VALUE, Validation.safeAdd(Long.MIN_VALUE, -1));
+        assertEquals(-5L, Validation.safeAdd(-2L, -3L));
+        assertEquals(1L, Validation.safeAdd(5L, -4L));
+    }
+
+    @Test
     void chipsFormatIsReadable() {
         assertEquals("0", ChipsFormat.format(0));
         assertEquals("0", ChipsFormat.format(-100));

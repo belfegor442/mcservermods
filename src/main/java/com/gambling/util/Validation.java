@@ -61,8 +61,11 @@ public final class Validation {
     }
 
     public static long safeAdd(long a, long b) {
-        if (a > Long.MAX_VALUE - b) {
+        if (b > 0 && a > Long.MAX_VALUE - b) {
             return Long.MAX_VALUE;
+        }
+        if (b < 0 && a < Long.MIN_VALUE - b) {
+            return Long.MIN_VALUE;
         }
         return a + b;
     }
