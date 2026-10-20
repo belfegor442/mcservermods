@@ -13,7 +13,8 @@ Fabric mod for Minecraft Java Edition 26.2, built with Java 25.
 - Economy safety: balances loaded from disk are clamped to the cap, and a win that would exceed the cap refunds the stake instead of locking the session.
 - The transaction log rotates at 10 MB so it cannot grow without bound.
 - Playable coin-flip, European roulette, and three-reel slots games, with server-side randomness and game-specific payouts.
-- A lightweight HUD showing the player's balance, level, and active round state.
+- Works on the server alone: chat messages are translated server-side to the language reported by the client, and clients without the mod get a status sidebar (chips, level, state, active game) in the vanilla scoreboard HUD.
+- Optional client mod: adds a custom panel HUD with the player portrait; players with the client mod skip the sidebar and see the panel instead.
 - English and Spanish messages.
 - Regression tests for economy, session transitions, disconnect refunds, failed saves, payout-cap handling, slots/roulette odds, and session crash recovery.
 
@@ -21,9 +22,9 @@ CHIPS are fictional in-game points. They have no real-money value and cannot be 
 
 ## Requirements
 
-- Minecraft Java Edition 26.2
-- Fabric Loader and Fabric API compatible with 26.2
-- Java 25
+- **Server:** Minecraft Java Edition 26.2, Fabric Loader and Fabric API compatible with 26.2, Java 25.
+- **Client (vanilla):** nothing to install. Minecraft 26.2 works out of the box; the server-side translation and scoreboard sidebar cover all gambling messages and status.
+- **Client (optional):** install the same Fabric setup only if you want the custom panel HUD.
 
 ## Player commands
 

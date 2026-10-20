@@ -13,7 +13,6 @@ import com.gambling.network.GameStateSyncS2C;
 import com.gambling.network.ProfileSyncS2C;
 import com.gambling.util.Validation;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
@@ -83,11 +82,13 @@ public final class GamblingServerState {
         PlayerProfile profile = economy.getOrCreate(player.getUUID(), player.getName().getString());
         sendProfileSync(player, profile);
         sendSessionSync(player, sessions.getSession(player.getUUID()));
+        PlayerSidebar.update(player, profile, sessions.getSession(player.getUUID()));
     }
 
     public void onPlayerQuit(ServerPlayer player) {
         sessions.handleDisconnect(player.getUUID());
         roundLimiter.clear(player.getUUID());
+        PlayerSidebar.forget(player.getUUID());
         if (economy.isDirty()) {
             economy.save();
         }
@@ -131,14 +132,14 @@ public final class GamblingServerState {
     }
 
     public void replyResult(ServerPlayer player, GameSessionManager.Result result) {
-        Component message = Component.translatable(result.messageKey(), result.args());
-        player.sendSystemMessage(message);
+        player.sendSystemMessage(ModText.of(player, result.messageKey(), result.args()));
     }
 
     private void onProfileChanged(java.util.UUID uuid, PlayerProfile profile) {
         ServerPlayer player = server.getPlayerList().getPlayer(uuid);
         if (player != null) {
             sendProfileSync(player, profile);
+            PlayerSidebar.update(player, profile, sessions.getSession(uuid));
         }
     }
 
@@ -156,6 +157,7 @@ public final class GamblingServerState {
         ServerPlayer player = server.getPlayerList().getPlayer(uuid);
         if (player != null) {
             sendSessionSync(player, session);
+            PlayerSidebar.update(player, economy.getProfile(uuid), session);
         }
     }
 }

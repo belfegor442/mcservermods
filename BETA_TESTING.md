@@ -1,13 +1,14 @@
-# Beta 0.2.0-beta.1 — Test checklist
+# Beta 0.2.0-beta.2 — Test checklist
 
 ## Install
 
 1. Back up the world and the server's `config/gambling` directory.
-2. Install Minecraft Java 26.2, Fabric Loader, and Fabric API on the client and server (Java 25 or newer).
-3. Put the mod JAR in the server's `mods` folder. Install it on the client too for the custom HUD and translated client state.
+2. Install Fabric Loader and Fabric API on the server with Java 25 or newer. Clients need Minecraft Java 26.2 but no mod at all; installing Fabric + the mod JAR on the client is optional and only changes the HUD (panel instead of sidebar).
+3. Put the mod JAR in the server's `mods` folder only.
 4. Start the server and confirm there are no mod initialization errors.
 5. Check that `config/gambling/gambling.json` was created and the defaults look right; restart after editing it.
-6. Join and run `/chips` to verify that a profile is created and the starting balance is shown.
+6. Join with a vanilla client and run `/chips`: the reply must show finished text (English/Spanish per client language), never raw `key.gambling.*` strings, and the sidebar HUD must appear on the right with chips, level, and state.
+7. Join a second time with a client that has the mod installed (if available) and confirm the sidebar is NOT shown for that player (the panel HUD replaces it).
 
 ## Gameplay smoke tests
 
@@ -16,7 +17,7 @@
 - `/casino roulette 10 red` and the `black`/`green` choices produce a number from 0–36 and a matching color.
 - Red/black roulette wins return 20 CHIPS for a 10-CHIP stake; green wins on zero return 360 CHIPS.
 - `/casino slots 10` displays three symbols from a seven-symbol reel set. A pair returns 20 CHIPS, a non-SEVEN triple returns 80 CHIPS, and three SEVEN symbols return 200 CHIPS.
-- After a round, the HUD keeps showing the game, bet, and result until the next round starts or the player disconnects.
+- After a round, the HUD keeps showing the game, bet, and result until the next round starts or the player disconnects. On a vanilla client this text lives in the right scoreboard sidebar; the sidebar updates after every round and disappears on disconnect.
 - Running two casino rounds back-to-back faster than `roundCooldownMillis` (default 1 s) shows the cooldown message; after waiting, the round starts.
 - `/gambling help` and plain `/gambling` list the commands.
 - Plain `/casino` and `/casino help` list all three games.

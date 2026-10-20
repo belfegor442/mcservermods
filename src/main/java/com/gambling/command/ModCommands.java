@@ -4,6 +4,7 @@ import com.gambling.economy.PlayerProfile;
 import com.gambling.game.GameSession;
 import com.gambling.game.GameSessionManager;
 import com.gambling.server.GamblingServerState;
+import com.gambling.server.ModText;
 import com.gambling.util.ChipsFormat;
 import com.gambling.util.Validation;
 import com.mojang.brigadier.arguments.LongArgumentType;
@@ -12,7 +13,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import static net.minecraft.commands.Commands.argument;
@@ -34,7 +34,7 @@ public final class ModCommands {
                 .executes(ctx -> {
                     ServerPlayer player = ctx.getSource().getPlayer();
                     if (player == null) {
-                        ctx.getSource().sendFailure(Component.translatable("key.gambling.error.players_only"));
+                        ctx.getSource().sendFailure(ModText.of(ctx.getSource(), "key.gambling.error.players_only"));
                         return 0;
                     }
                     GamblingServerState state = requireState(ctx.getSource());
@@ -42,7 +42,7 @@ public final class ModCommands {
                         return 0;
                     }
                     PlayerProfile profile = state.economy().getOrCreate(player.getUUID(), player.getName().getString());
-                    ctx.getSource().sendSuccess(() -> Component.translatable("key.gambling.cmd.balance.self",
+                    ctx.getSource().sendSuccess(() -> ModText.of(ctx.getSource(), "key.gambling.cmd.balance.self",
                             ChipsFormat.format(profile.chips()), String.valueOf(profile.level())), false);
                     return 1;
                 })
@@ -57,10 +57,10 @@ public final class ModCommands {
                                     PlayerProfile profile = resolveTarget(state, ctx.getSource(),
                                             StringArgumentType.getString(ctx, "player"));
                                     if (profile == null) {
-                                        ctx.getSource().sendSuccess(() -> Component.translatable("key.gambling.error.player_not_found"), false);
+                                        ctx.getSource().sendSuccess(() -> ModText.of(ctx.getSource(), "key.gambling.error.player_not_found"), false);
                                         return 0;
                                     }
-                                    ctx.getSource().sendSuccess(() -> Component.translatable("key.gambling.cmd.balance.other",
+                                    ctx.getSource().sendSuccess(() -> ModText.of(ctx.getSource(), "key.gambling.cmd.balance.other",
                                             profile.name(), ChipsFormat.format(profile.chips()), String.valueOf(profile.level())), true);
                                     return 1;
                                 })))
@@ -77,12 +77,12 @@ public final class ModCommands {
                                             long amount = LongArgumentType.getLong(ctx, "amount");
                                             PlayerProfile target = resolveTarget(state, ctx.getSource(), name);
                                             if (target == null) {
-                                                ctx.getSource().sendSuccess(() -> Component.translatable("key.gambling.error.player_not_found"), false);
+                                                ctx.getSource().sendSuccess(() -> ModText.of(ctx.getSource(), "key.gambling.error.player_not_found"), false);
                                                 return 0;
                                             }
                                             boolean ok = state.economy().setChips(target.uuid(), target.name(), amount, "ADMIN_SET");
                                             if (ok) {
-                                                ctx.getSource().sendSuccess(() -> Component.translatable("key.gambling.cmd.set",
+                                                ctx.getSource().sendSuccess(() -> ModText.of(ctx.getSource(), "key.gambling.cmd.set",
                                                         target.name(), ChipsFormat.format(amount)), true);
                                             }
                                             return ok ? 1 : 0;
@@ -100,17 +100,17 @@ public final class ModCommands {
                                             long amount = LongArgumentType.getLong(ctx, "amount");
                                             PlayerProfile target = resolveTarget(state, ctx.getSource(), name);
                                             if (target == null) {
-                                                ctx.getSource().sendSuccess(() -> Component.translatable("key.gambling.error.player_not_found"), false);
+                                                ctx.getSource().sendSuccess(() -> ModText.of(ctx.getSource(), "key.gambling.error.player_not_found"), false);
                                                 return 0;
                                             }
                                             boolean ok = state.economy().addChips(target.uuid(), target.name(), amount, "ADMIN_ADD");
                                             if (ok) {
                                                 PlayerProfile profile = state.economy().getProfile(target.uuid());
-                                                ctx.getSource().sendSuccess(() -> Component.translatable("key.gambling.cmd.add",
+                                                ctx.getSource().sendSuccess(() -> ModText.of(ctx.getSource(), "key.gambling.cmd.add",
                                                         ChipsFormat.format(amount), target.name(),
                                                         ChipsFormat.format(profile != null ? profile.chips() : amount)), true);
                                             } else {
-                                                ctx.getSource().sendSuccess(() -> Component.translatable("key.gambling.cmd.add_failed"), false);
+                                                ctx.getSource().sendSuccess(() -> ModText.of(ctx.getSource(), "key.gambling.cmd.add_failed"), false);
                                             }
                                             return ok ? 1 : 0;
                                         }))))
@@ -127,17 +127,17 @@ public final class ModCommands {
                                             long amount = LongArgumentType.getLong(ctx, "amount");
                                             PlayerProfile target = resolveTarget(state, ctx.getSource(), name);
                                             if (target == null) {
-                                                ctx.getSource().sendSuccess(() -> Component.translatable("key.gambling.error.player_not_found"), false);
+                                                ctx.getSource().sendSuccess(() -> ModText.of(ctx.getSource(), "key.gambling.error.player_not_found"), false);
                                                 return 0;
                                             }
                                             boolean ok = state.economy().removeChips(target.uuid(), target.name(), amount, "ADMIN_REMOVE");
                                             if (ok) {
                                                 PlayerProfile profile = state.economy().getProfile(target.uuid());
-                                                ctx.getSource().sendSuccess(() -> Component.translatable("key.gambling.cmd.remove",
+                                                ctx.getSource().sendSuccess(() -> ModText.of(ctx.getSource(), "key.gambling.cmd.remove",
                                                         ChipsFormat.format(amount), target.name(),
                                                         ChipsFormat.format(profile != null ? profile.chips() : 0)), true);
                                             } else {
-                                                ctx.getSource().sendSuccess(() -> Component.translatable("key.gambling.cmd.remove_failed"), false);
+                                                ctx.getSource().sendSuccess(() -> ModText.of(ctx.getSource(), "key.gambling.cmd.remove_failed"), false);
                                             }
                                             return ok ? 1 : 0;
                                         }))))
@@ -159,20 +159,20 @@ public final class ModCommands {
         if (targetName == null) {
             ServerPlayer self = source.getPlayer();
             if (self == null) {
-                source.sendFailure(Component.translatable("key.gambling.error.players_only"));
+                source.sendFailure(ModText.of(source, "key.gambling.error.players_only"));
                 return 0;
             }
             profile = state.economy().getOrCreate(self.getUUID(), self.getName().getString());
         } else {
             profile = resolveTarget(state, source, targetName);
             if (profile == null) {
-                source.sendSuccess(() -> Component.translatable("key.gambling.error.player_not_found"), false);
+                source.sendSuccess(() -> ModText.of(source, "key.gambling.error.player_not_found"), false);
                 return 0;
             }
         }
         java.util.UUID uuid = profile.uuid();
         GameSession session = state.sessions().getSession(uuid);
-        source.sendSuccess(() -> Component.translatable("key.gambling.cmd.profile",
+        source.sendSuccess(() -> ModText.of(source, "key.gambling.cmd.profile",
                 profile.name(),
                 ChipsFormat.format(profile.chips()),
                 String.valueOf(profile.level()),
@@ -180,10 +180,10 @@ public final class ModCommands {
                 ChipsFormat.format(profile.totalWagered())), targetName != null);
         if (session != null) {
             GameSession s = session;
-            source.sendSuccess(() -> Component.translatable("key.gambling.cmd.session",
+            source.sendSuccess(() -> ModText.of(source, "key.gambling.cmd.session",
                     s.gameType(), ChipsFormat.format(s.bet()), s.state().id(), s.result()), false);
         } else {
-            source.sendSuccess(() -> Component.translatable("key.gambling.cmd.session.none"), false);
+            source.sendSuccess(() -> ModText.of(source, "key.gambling.cmd.session.none"), false);
         }
         return 1;
     }
@@ -207,7 +207,7 @@ public final class ModCommands {
         return literal("gambling")
                 .executes(ctx -> {
                     ctx.getSource().sendSuccess(
-                            () -> Component.translatable("key.gambling.help"), false);
+                            () -> ModText.of(ctx.getSource(), "key.gambling.help"), false);
                     return 1;
                 })
                 .then(literal("start")
@@ -295,7 +295,7 @@ public final class ModCommands {
                 .then(literal("help")
                         .executes(ctx -> {
                             ctx.getSource().sendSuccess(
-                                    () -> Component.translatable("key.gambling.help"), false);
+                                    () -> ModText.of(ctx.getSource(), "key.gambling.help"), false);
                             return 1;
                         }))
                 .then(literal("sync")
@@ -324,7 +324,7 @@ public final class ModCommands {
     private static GamblingServerState requireState(CommandSourceStack source) {
         GamblingServerState state = GamblingServerState.get();
         if (state == null) {
-            source.sendSuccess(() -> Component.translatable("key.gambling.error.not_ready"), false);
+            source.sendSuccess(() -> ModText.of(source, "key.gambling.error.not_ready"), false);
         }
         return state;
     }

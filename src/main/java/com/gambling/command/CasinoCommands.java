@@ -4,12 +4,12 @@ import com.gambling.game.GameSessionManager;
 import com.gambling.game.Roulette;
 import com.gambling.game.Slots;
 import com.gambling.server.GamblingServerState;
+import com.gambling.server.ModText;
 import com.gambling.config.GamblingConfig;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.security.SecureRandom;
@@ -31,7 +31,7 @@ public final class CasinoCommands {
             long maxBet = GamblingConfig.get().maxBet();
             var casino = literal("casino").executes(context -> {
                 context.getSource().sendSuccess(
-                        () -> Component.translatable("key.gambling.casino.help"), false);
+                        () -> ModText.of(context.getSource(), "key.gambling.casino.help"), false);
                 return 1;
             });
             casino.then(literal("coinflip")
@@ -66,7 +66,7 @@ public final class CasinoCommands {
                                     LongArgumentType.getLong(context, "bet")))));
             casino.then(literal("help").executes(context -> {
                 context.getSource().sendSuccess(
-                        () -> Component.translatable("key.gambling.casino.help"), false);
+                        () -> ModText.of(context.getSource(), "key.gambling.casino.help"), false);
                 return 1;
             }));
             dispatcher.register(casino);
@@ -76,18 +76,18 @@ public final class CasinoCommands {
     private static int playCoinFlip(CommandSourceStack source, long bet, String rawSide) {
         ServerPlayer player = source.getPlayer();
         if (player == null) {
-            source.sendFailure(Component.translatable("key.gambling.error.players_only"));
+            source.sendFailure(ModText.of(source, "key.gambling.error.players_only"));
             return 0;
         }
         String chosenSide = rawSide.toLowerCase(Locale.ROOT);
         if (!chosenSide.equals("heads") && !chosenSide.equals("tails")) {
-            source.sendFailure(Component.translatable("key.gambling.error.coinflip_side"));
+            source.sendFailure(ModText.of(source, "key.gambling.error.coinflip_side"));
             return 0;
         }
 
         GamblingServerState state = GamblingServerState.get();
         if (state == null) {
-            source.sendFailure(Component.translatable("key.gambling.error.not_ready"));
+            source.sendFailure(ModText.of(source, "key.gambling.error.not_ready"));
             return 0;
         }
 
@@ -103,18 +103,18 @@ public final class CasinoCommands {
     private static int playRoulette(CommandSourceStack source, long bet, String rawColor) {
         ServerPlayer player = source.getPlayer();
         if (player == null) {
-            source.sendFailure(Component.translatable("key.gambling.error.players_only"));
+            source.sendFailure(ModText.of(source, "key.gambling.error.players_only"));
             return 0;
         }
         String chosenColor = rawColor.toLowerCase(Locale.ROOT);
         if (!ROULETTE_COLORS.contains(chosenColor)) {
-            source.sendFailure(Component.translatable("key.gambling.error.roulette_color"));
+            source.sendFailure(ModText.of(source, "key.gambling.error.roulette_color"));
             return 0;
         }
 
         GamblingServerState state = GamblingServerState.get();
         if (state == null) {
-            source.sendFailure(Component.translatable("key.gambling.error.not_ready"));
+            source.sendFailure(ModText.of(source, "key.gambling.error.not_ready"));
             return 0;
         }
 
@@ -132,12 +132,12 @@ public final class CasinoCommands {
     private static int playSlots(CommandSourceStack source, long bet) {
         ServerPlayer player = source.getPlayer();
         if (player == null) {
-            source.sendFailure(Component.translatable("key.gambling.error.players_only"));
+            source.sendFailure(ModText.of(source, "key.gambling.error.players_only"));
             return 0;
         }
         GamblingServerState state = GamblingServerState.get();
         if (state == null) {
-            source.sendFailure(Component.translatable("key.gambling.error.not_ready"));
+            source.sendFailure(ModText.of(source, "key.gambling.error.not_ready"));
             return 0;
         }
 
