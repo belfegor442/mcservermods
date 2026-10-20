@@ -1,4 +1,4 @@
-# Beta 0.1.0-beta.1 — Test checklist
+# Beta 0.1.0-beta.2 — Test checklist
 
 ## Install
 
@@ -14,7 +14,7 @@
 - `/casino coinflip 10 heads` runs one round, deducts 10 CHIPS, and returns 20 CHIPS on a win or 0 on a loss.
 - `/casino roulette 10 red` and the `black`/`green` choices produce a number from 0–36 and a matching color.
 - Red/black roulette wins return 20 CHIPS for a 10-CHIP stake; green wins on zero return 360 CHIPS.
-- `/casino slots 10` displays three symbols. A pair returns 20 CHIPS, a non-SEVEN triple returns 80 CHIPS, and three SEVEN symbols return 200 CHIPS.
+- `/casino slots 10` displays three symbols from a seven-symbol reel set. A pair returns 20 CHIPS, a non-SEVEN triple returns 80 CHIPS, and three SEVEN symbols return 200 CHIPS.
 - After a round, the HUD keeps showing the game, bet, and result until the next round starts or the player disconnects.
 - Plain `/casino` and `/casino help` list all three games.
 - Bets above the current balance fail without making the balance negative.
@@ -22,6 +22,7 @@
 - Disconnecting with a committed but unresolved bet refunds the stake.
 - After reconnecting, the balance and level remain synchronized.
 - Restart the server and verify the balance persists.
+- Kill the server (not a clean stop) right after `/gambling bet` (op demo flow) and verify that restarting refunds the stake.
 - Test both English and Spanish game messages.
 
 ## Known beta limitations

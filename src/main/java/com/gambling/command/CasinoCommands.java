@@ -1,11 +1,14 @@
 package com.gambling.command;
 
 import com.gambling.game.GameSessionManager;
+import com.gambling.game.Roulette;
+import com.gambling.game.Slots;
 import com.gambling.server.GamblingServerState;
 import com.gambling.util.Validation;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
@@ -18,7 +21,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 
 public final class CasinoCommands {
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final Set<Integer> RED_NUMBERS = Set.of(1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36);
+    private static final Set<String> ROULETTE_COLORS = Set.of(Roulette.RED, Roulette.BLACK, Roulette.GREEN);
 
     private CasinoCommands() {
     }
@@ -46,9 +49,9 @@ public final class CasinoCommands {
                     .then(argument("bet", LongArgumentType.longArg(1, Validation.MAX_BET))
                             .then(argument("color", StringArgumentType.word())
                                     .suggests((context, builder) -> {
-                                        builder.suggest("red");
-                                        builder.suggest("black");
-                                        builder.suggest("green");
+                                        builder.suggest(Roulette.RED);
+                                        builder.suggest(Roulette.BLACK);
+                                        builder.suggest(Roulette.GREEN);
                                         return builder.buildFuture();
                                     })
                                     .executes(context -> playRoulette(
@@ -69,7 +72,7 @@ public final class CasinoCommands {
         });
     }
 
-    private static int playCoinFlip(net.minecraft.server.command.ServerCommandSource source, long bet, String rawSide) {
+    private static int playCoinFlip(ServerCommandSource source, long bet, String rawSide) {
         ServerPlayerEntity player = source.getPlayer();
         if (player == null) {
             source.sendError(Text.translatable("key.gambling.error.players_only"));
@@ -87,53 +90,23 @@ public final class CasinoCommands {
             return 0;
         }
 
-        GameSessionManager sessions = state.sessions();
-        GameSessionManager.Result started = sessions.startSession(player.getUuid(), "coinflip", bet);
-        if (!started.ok()) {
-            state.replyResult(player, started);
-            return 0;
-        }
-
-        GameSessionManager.Result committed = sessions.commitBet(player.getUuid(), bet);
-        if (!committed.ok()) {
-            sessions.cancelSession(player.getUuid());
-            state.replyResult(player, committed);
-            return 0;
-        }
-
         String resultSide = RANDOM.nextBoolean() ? "heads" : "tails";
         boolean won = chosenSide.equals(resultSide);
-        // The round stays in FINALIZING (visible on the HUD) and is closed
-        // automatically when the next session starts or the player disconnects.
-        GameSessionManager.Result resolved = sessions.resolveRound(player.getUuid(), won,
-                resultSide.toUpperCase(Locale.ROOT) + (won ? " — WIN" : " — LOSS"));
-        if (!resolved.ok()) {
-            state.replyResult(player, resolved);
-            return 0;
-        }
-
-        if (won) {
-            state.replyResult(player, GameSessionManager.Result.success(
-                    "key.gambling.casino.coinflip.win",
-                    resultSide,
-                    chosenSide,
-                    Long.toString(bet * 2L)));
-        } else {
-            state.replyResult(player, GameSessionManager.Result.success(
-                    "key.gambling.casino.coinflip.loss",
-                    resultSide,
-                    chosenSide));
-        }
-        return 1;
+        return playRound(state, player, "coinflip", bet, won, 2L,
+                resultSide.toUpperCase(Locale.ROOT) + (won ? " — WIN" : " — LOSS"),
+                won ? "key.gambling.casino.coinflip.win" : "key.gambling.casino.coinflip.loss",
+                won ? new Object[]{resultSide, chosenSide, Long.toString(bet * 2L)}
+                        : new Object[]{resultSide, chosenSide});
     }
-    private static int playRoulette(net.minecraft.server.command.ServerCommandSource source, long bet, String rawColor) {
+
+    private static int playRoulette(ServerCommandSource source, long bet, String rawColor) {
         ServerPlayerEntity player = source.getPlayer();
         if (player == null) {
             source.sendError(Text.translatable("key.gambling.error.players_only"));
             return 0;
         }
         String chosenColor = rawColor.toLowerCase(Locale.ROOT);
-        if (!Set.of("red", "black", "green").contains(chosenColor)) {
+        if (!ROULETTE_COLORS.contains(chosenColor)) {
             source.sendError(Text.translatable("key.gambling.error.roulette_color"));
             return 0;
         }
@@ -144,50 +117,18 @@ public final class CasinoCommands {
             return 0;
         }
 
-        GameSessionManager sessions = state.sessions();
-        GameSessionManager.Result started = sessions.startSession(player.getUuid(), "roulette", bet);
-        if (!started.ok()) {
-            state.replyResult(player, started);
-            return 0;
-        }
-        GameSessionManager.Result committed = sessions.commitBet(player.getUuid(), bet);
-        if (!committed.ok()) {
-            sessions.cancelSession(player.getUuid());
-            state.replyResult(player, committed);
-            return 0;
-        }
-
-        int number = RANDOM.nextInt(37);
-        String resultColor = number == 0 ? "green" : RED_NUMBERS.contains(number) ? "red" : "black";
-        boolean won = chosenColor.equals(resultColor);
-        long multiplier = "green".equals(chosenColor) ? 36L : 2L;
-        String resultText = number + " " + resultColor.toUpperCase(Locale.ROOT)
-                + (won ? " — WIN" : " — LOSS");
-        GameSessionManager.Result resolved =
-                sessions.resolveRound(player.getUuid(), won, resultText, multiplier);
-        if (!resolved.ok()) {
-            state.replyResult(player, resolved);
-            return 0;
-        }
-
-        if (won) {
-            state.replyResult(player, GameSessionManager.Result.success(
-                    "key.gambling.casino.roulette.win",
-                    Integer.toString(number),
-                    resultColor,
-                    chosenColor,
-                    Long.toString(bet * multiplier)));
-        } else {
-            state.replyResult(player, GameSessionManager.Result.success(
-                    "key.gambling.casino.roulette.loss",
-                    Integer.toString(number),
-                    resultColor,
-                    chosenColor));
-        }
-        return 1;
+        Roulette.Outcome outcome = Roulette.spin(chosenColor, RANDOM);
+        return playRound(state, player, "roulette", bet, outcome.won(), outcome.multiplier(),
+                outcome.resultText(),
+                outcome.won() ? "key.gambling.casino.roulette.win" : "key.gambling.casino.roulette.loss",
+                outcome.won()
+                        ? new Object[]{Integer.toString(outcome.number()), outcome.resultColor(),
+                                outcome.chosenColor(), Long.toString(bet * outcome.multiplier())}
+                        : new Object[]{Integer.toString(outcome.number()), outcome.resultColor(),
+                                outcome.chosenColor()});
     }
 
-    private static int playSlots(net.minecraft.server.command.ServerCommandSource source, long bet) {
+    private static int playSlots(ServerCommandSource source, long bet) {
         ServerPlayerEntity player = source.getPlayer();
         if (player == null) {
             source.sendError(Text.translatable("key.gambling.error.players_only"));
@@ -199,12 +140,31 @@ public final class CasinoCommands {
             return 0;
         }
 
+        Slots.Outcome outcome = Slots.roll(RANDOM);
+        return playRound(state, player, "slots", bet, outcome.won(), outcome.multiplier(),
+                outcome.resultText(),
+                outcome.won() ? "key.gambling.casino.slots.win" : "key.gambling.casino.slots.loss",
+                outcome.won()
+                        ? new Object[]{outcome.first(), outcome.second(), outcome.third(),
+                                Long.toString(bet * outcome.multiplier())}
+                        : new Object[]{outcome.first(), outcome.second(), outcome.third()});
+    }
+
+    /**
+     * Runs one complete round: open the session, commit the stake, resolve the
+     * outcome, and report it. The session stays in FINALIZING (visible on the
+     * HUD) and is closed automatically when the next session starts.
+     */
+    private static int playRound(GamblingServerState state, ServerPlayerEntity player,
+                                 String gameType, long bet, boolean won, long multiplier,
+                                 String resultText, String messageKey, Object[] messageArgs) {
         GameSessionManager sessions = state.sessions();
-        GameSessionManager.Result started = sessions.startSession(player.getUuid(), "slots", bet);
+        GameSessionManager.Result started = sessions.startSession(player.getUuid(), gameType, bet);
         if (!started.ok()) {
             state.replyResult(player, started);
             return 0;
         }
+
         GameSessionManager.Result committed = sessions.commitBet(player.getUuid(), bet);
         if (!committed.ok()) {
             sessions.cancelSession(player.getUuid());
@@ -212,38 +172,13 @@ public final class CasinoCommands {
             return 0;
         }
 
-        String[] symbols = {"CHERRY", "BELL", "DIAMOND", "CROWN", "STAR", "SEVEN"};
-        int first = RANDOM.nextInt(symbols.length);
-        int second = RANDOM.nextInt(symbols.length);
-        int third = RANDOM.nextInt(symbols.length);
-        boolean triple = first == second && second == third;
-        boolean pair = first == second || first == third || second == third;
-        boolean won = pair;
-        long multiplier = triple ? (first == 5 ? 20L : 8L) : pair ? 2L : 1L;
-        String resultText = symbols[first] + " | " + symbols[second] + " | " + symbols[third]
-                + (won ? " — WIN x" + multiplier : " — LOSS");
-
-        GameSessionManager.Result resolved =
-                sessions.resolveRound(player.getUuid(), won, resultText, multiplier);
+        GameSessionManager.Result resolved = sessions.resolveRound(player.getUuid(), won, resultText, multiplier);
         if (!resolved.ok()) {
             state.replyResult(player, resolved);
             return 0;
         }
-        if (won) {
-            state.replyResult(player, GameSessionManager.Result.success(
-                    "key.gambling.casino.slots.win",
-                    symbols[first],
-                    symbols[second],
-                    symbols[third],
-                    Long.toString(bet * multiplier)));
-        } else {
-            state.replyResult(player, GameSessionManager.Result.success(
-                    "key.gambling.casino.slots.loss",
-                    symbols[first],
-                    symbols[second],
-                    symbols[third]));
-        }
+
+        state.replyResult(player, GameSessionManager.Result.success(messageKey, messageArgs));
         return 1;
     }
-
 }

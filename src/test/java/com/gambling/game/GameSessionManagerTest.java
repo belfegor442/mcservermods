@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -260,6 +261,36 @@ class GameSessionManagerTest {
         GameSession session = new GameSession(player, null, 10, PlayerState.IN_GAME, null);
         assertEquals("", session.gameType());
         assertEquals("", session.result());
+    }
+
+    @Test
+    void restoreRefundsUnresolvedBettingStake() {
+        long before = economy.getProfile(player).chips();
+        sessions.startSession(player, "coinflip", 100);
+        sessions.commitBet(player, 100);
+
+        // Simulate a crash: a fresh manager restores the persisted BETTING session.
+        GameSessionManager restored = new GameSessionManager(economy);
+        restored.restoreSessions(Map.of(player, sessions.getSession(player)));
+
+        assertNull(restored.getSession(player), "unresolved betting sessions must be dropped");
+        assertEquals(before, economy.getProfile(player).chips(), "the stake must be refunded");
+        assertEquals(0L, economy.getProfile(player).totalWagered());
+    }
+
+    @Test
+    void restoreKeepsInProgressAndResolvedSessions() {
+        sessions.startSession(player, "coinflip", 100);
+        GameSession inGame = sessions.getSession(player);
+
+        UUID other = UUID.randomUUID();
+        GameSession resolved = new GameSession(other, "roulette", 50, PlayerState.FINALIZING, "0 GREEN — WIN");
+        GameSessionManager restored = new GameSessionManager(economy);
+        restored.restoreSessions(Map.of(player, inGame, other, resolved));
+
+        assertEquals(PlayerState.IN_GAME, restored.getSession(player).state());
+        assertEquals(PlayerState.FINALIZING, restored.getSession(other).state());
+        assertEquals(2, restored.snapshot().size());
     }
 
     @Test

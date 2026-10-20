@@ -6,6 +6,7 @@ import com.gambling.economy.PlayerProfile;
 import com.gambling.economy.TransactionLog;
 import com.gambling.game.GameSession;
 import com.gambling.game.GameSessionManager;
+import com.gambling.game.JsonSessionStorage;
 import com.gambling.network.GameStateSyncS2C;
 import com.gambling.network.ProfileSyncS2C;
 import com.gambling.util.Validation;
@@ -25,6 +26,7 @@ public final class GamblingServerState {
 
     private final EconomyManager economy;
     private final GameSessionManager sessions;
+    private final JsonSessionStorage sessionStorage;
     private final MinecraftServer server;
 
     private GamblingServerState(MinecraftServer server, Path configDir) {
@@ -34,7 +36,9 @@ public final class GamblingServerState {
         TransactionLog log = new TransactionLog(gamblingDir.resolve("transactions.csv"));
         this.economy = new EconomyManager(storage, log);
         this.sessions = new GameSessionManager(economy);
+        this.sessionStorage = new JsonSessionStorage(gamblingDir.resolve("sessions.json"));
         economy.loadFromDisk();
+        sessions.restoreSessions(sessionStorage.load());
         economy.addChangeListener(this::onProfileChanged);
         sessions.addChangeListener(this::onSessionChanged);
     }
@@ -47,6 +51,7 @@ public final class GamblingServerState {
     public static void stop() {
         if (instance != null) {
             instance.economy.save();
+            instance.sessionStorage.save(instance.sessions.snapshot());
             instance = null;
             LOGGER.info("Gambling server state saved and cleared.");
         }
@@ -125,6 +130,7 @@ public final class GamblingServerState {
     }
 
     private void onSessionChanged(java.util.UUID uuid, GameSession session) {
+        sessionStorage.save(sessions.snapshot());
         ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
         if (player != null) {
             sendSessionSync(player, session);

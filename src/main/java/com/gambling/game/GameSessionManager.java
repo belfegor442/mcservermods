@@ -41,6 +41,33 @@ public final class GameSessionManager {
         return sessions.get(playerId);
     }
 
+    public synchronized Map<UUID, GameSession> snapshot() {
+        return Map.copyOf(sessions);
+    }
+
+    /**
+     * Restores sessions persisted by a previous server run (crash recovery).
+     * Unresolved BETTING stakes are refunded and dropped: their outcome no
+     * longer exists, so keeping them would silently destroy the stake.
+     */
+    public synchronized void restoreSessions(Map<UUID, GameSession> stored) {
+        for (Map.Entry<UUID, GameSession> entry : stored.entrySet()) {
+            GameSession session = entry.getValue();
+            if (session == null) {
+                continue;
+            }
+            if (session.state() == PlayerState.BETTING) {
+                if (Validation.isValidBet(session.bet())
+                        && !economy.addChips(entry.getKey(), null, session.bet(), "CRASH_RECOVERY_REFUND")) {
+                    LOGGER.error("Could not refund {} CHIPS for {} after restore.",
+                            session.bet(), entry.getKey());
+                }
+                continue;
+            }
+            sessions.put(entry.getKey(), session);
+        }
+    }
+
     public synchronized Result startSession(UUID playerId, String rawGameType, long bet) {
         String gameType = Validation.sanitizeGameType(rawGameType);
         if (gameType == null || !Validation.isValidBet(bet)) {
