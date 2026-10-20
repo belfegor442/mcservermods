@@ -49,10 +49,25 @@ public final class TransactionLog {
         }
     }
 
+    /**
+     * Keeps a field CSV-safe: control characters, quotes and commas break the
+     * format, and a leading {@code = + - @/-} would make spreadsheet software
+     * treat the field as a formula when the log is opened in Excel/LibreOffice.
+     */
     private static String sanitize(String value) {
         if (value == null) {
             return "";
         }
-        return value.replace(',', '_').replace('\n', '_').replace('\r', '_');
+        StringBuilder out = new StringBuilder(value.length());
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            boolean formulaStart = i == 0 && (c == '=' || c == '+' || c == '-' || c == '@');
+            if (c < 0x20 || c == ',' || c == '"' || formulaStart) {
+                out.append('_');
+            } else {
+                out.append(c);
+            }
+        }
+        return out.toString();
     }
 }

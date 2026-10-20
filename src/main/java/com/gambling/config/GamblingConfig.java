@@ -66,8 +66,10 @@ public final class GamblingConfig {
                 saveQuietly(file, defaults);
                 return defaults;
             }
-            JsonObject root = JsonParser.parseReader(
-                    Files.newBufferedReader(file, StandardCharsets.UTF_8)).getAsJsonObject();
+            JsonObject root;
+            try (java.io.Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+                root = JsonParser.parseReader(reader).getAsJsonObject();
+            }
             long defaultChips = readLong(root, "defaultChips", DEFAULT_CHIPS, 0L,
                     Validation.MAX_ADMIN_AMOUNT, file);
             long maxBet = readLong(root, "maxBet", DEFAULT_MAX_BET, 1L, Validation.MAX_BET, file);

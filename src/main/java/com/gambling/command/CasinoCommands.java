@@ -173,7 +173,6 @@ public final class CasinoCommands {
             state.replyResult(player, started);
             return 0;
         }
-        state.roundLimiter().record(player.getUuid(), now);
 
         GameSessionManager.Result committed = sessions.commitBet(player.getUuid(), bet);
         if (!committed.ok()) {
@@ -181,6 +180,9 @@ public final class CasinoCommands {
             state.replyResult(player, committed);
             return 0;
         }
+        // Only rounds that actually staked chips consume the cooldown, so a
+        // rejected start/commit does not lock the player out.
+        state.roundLimiter().record(player.getUuid(), now);
 
         GameSessionManager.Result resolved = sessions.resolveRound(player.getUuid(), won, resultText, multiplier);
         if (!resolved.ok()) {

@@ -46,6 +46,25 @@ public final class GameSessionManager {
     }
 
     /**
+     * Full startup recovery protocol: load persisted sessions, refund and drop
+     * unresolved BETTING stakes, then immediately persist the recovered state
+     * in the safe order (sessions first, then refunded balances). A repeated
+     * crash during recovery can therefore never refund the same stake twice,
+     * and a crash right after can never see BETTING on disk next to balances
+     * that were already refunded.
+     */
+    public synchronized void restoreFrom(JsonSessionStorage storage) {
+        restoreSessions(storage.load());
+        if (!storage.save(snapshot())) {
+            LOGGER.error("Could not persist recovered sessions; a repeated crash may re-refund stakes.");
+            return;
+        }
+        if (economy.isDirty() && !economy.save()) {
+            LOGGER.error("Could not persist refunded balances; they will be retried on the next save.");
+        }
+    }
+
+    /**
      * Restores sessions persisted by a previous server run (crash recovery).
      * Unresolved BETTING stakes are refunded and dropped: their outcome no
      * longer exists, so keeping them would silently destroy the stake.
@@ -63,6 +82,11 @@ public final class GameSessionManager {
                     LOGGER.error("Could not refund {} CHIPS for {} after restore.",
                             session.bet(), entry.getKey());
                 }
+                continue;
+            }
+            if (session.state() == PlayerState.AVAILABLE) {
+                // Normal saves never write "available"; this can only come from
+                // a corrupt/edited file and no command can clear such a session.
                 continue;
             }
             if (Validation.sanitizeGameType(session.gameType()) == null) {

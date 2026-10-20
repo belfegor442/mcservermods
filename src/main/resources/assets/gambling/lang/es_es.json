@@ -16,6 +16,7 @@
   "key.gambling.cmd.add": "Añadidos %s CHIPS a %s. Saldo: %s.",
   "key.gambling.cmd.remove": "Retirados %s CHIPS a %s. Saldo: %s.",
   "key.gambling.cmd.remove_failed": "No se pudieron retirar CHIPS: fondos insuficientes.",
+  "key.gambling.cmd.add_failed": "No se pudieron añadir CHIPS: el saldo superaría el máximo.",
   "key.gambling.cmd.profile": "Perfil %s — CHIPS: %s | Nivel: %s | XP: %s | Apostado: %s",
   "key.gambling.cmd.session.none": "No hay partida activa.",
   "key.gambling.cmd.session": "Sesión [%s] apuesta=%s estado=%s resultado=%s",

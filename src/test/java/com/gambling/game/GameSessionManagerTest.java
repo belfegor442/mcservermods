@@ -360,4 +360,50 @@ class GameSessionManagerTest {
         sessions.finishSession(player);
         assertEquals(50L, economy.getProfile(player).chips());
     }
+
+    @Test
+    void restoreFromRefundsStaleBettingStakeExactlyOnce() {
+        JsonSessionStorage storage = new JsonSessionStorage(dir.resolve("sessions.json"));
+        UUID victim = UUID.randomUUID();
+        economy.getOrCreate(victim, "Victim");
+        // Crash scenario: sessions.json reached disk with BETTING but the
+        // economy never autosaved, so the on-disk balance still holds the stake.
+        assertTrue(storage.save(Map.of(victim,
+                new GameSession(victim, "slots", 250, PlayerState.BETTING, ""))));
+
+        sessions.restoreFrom(storage);
+
+        assertEquals(EconomyManager.DEFAULT_CHIPS + 250,
+                economy.getProfile(victim).chips(), "the stake must be refunded on recovery");
+        assertNull(sessions.getSession(victim));
+        assertTrue(storage.load().isEmpty(),
+                "recovered sessions must be persisted immediately so a second crash cannot re-refund");
+
+        EconomyManager reloaded = new EconomyManager(
+                new JsonProfileStorage(dir.resolve("profiles.json")),
+                new TransactionLog(dir.resolve("transactions.csv")));
+        reloaded.loadFromDisk();
+        assertEquals(EconomyManager.DEFAULT_CHIPS + 250, reloaded.getProfile(victim).chips(),
+                "the refunded balance must be on disk right after recovery");
+
+        sessions.restoreFrom(storage);
+        assertEquals(EconomyManager.DEFAULT_CHIPS + 250,
+                economy.getProfile(victim).chips(), "recovery must be idempotent");
+    }
+
+    @Test
+    void restoreDropsSessionWithUnusableState() {
+        JsonSessionStorage storage = new JsonSessionStorage(dir.resolve("sessions.json"));
+        UUID ghost = UUID.randomUUID();
+        economy.getOrCreate(ghost, "Ghost");
+        assertTrue(storage.save(Map.of(ghost,
+                new GameSession(ghost, "slots", 100, PlayerState.AVAILABLE, ""))));
+
+        sessions.restoreFrom(storage);
+
+        assertNull(sessions.getSession(ghost),
+                "an AVAILABLE session cannot be cleared by any command and must not be restored");
+        assertEquals(EconomyManager.DEFAULT_CHIPS, economy.getProfile(ghost).chips(),
+                "a non-BETTING entry must never be refunded");
+    }
 }

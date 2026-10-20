@@ -16,6 +16,7 @@
   "key.gambling.cmd.add": "Added %s CHIPS to %s. New balance: %s.",
   "key.gambling.cmd.remove": "Removed %s CHIPS from %s. New balance: %s.",
   "key.gambling.cmd.remove_failed": "Could not remove CHIPS: insufficient funds.",
+  "key.gambling.cmd.add_failed": "Could not add CHIPS: the balance would exceed the maximum.",
   "key.gambling.cmd.profile": "Profile %s — CHIPS: %s | Level: %s | XP: %s | Wagered: %s",
   "key.gambling.cmd.session.none": "No active game session.",
   "key.gambling.cmd.session": "Session [%s] bet=%s state=%s result=%s",

@@ -108,6 +108,8 @@ public final class ModCommands {
                                                 ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.cmd.add",
                                                         ChipsFormat.format(amount), target.name(),
                                                         ChipsFormat.format(profile != null ? profile.chips() : amount)), true);
+                                            } else {
+                                                ctx.getSource().sendFeedback(() -> Text.translatable("key.gambling.cmd.add_failed"), false);
                                             }
                                             return ok ? 1 : 0;
                                         }))))
@@ -174,7 +176,7 @@ public final class ModCommands {
                 ChipsFormat.format(profile.chips()),
                 String.valueOf(profile.level()),
                 ChipsFormat.format(profile.xp()),
-                ChipsFormat.format(profile.totalWagered())), targetName == null);
+                ChipsFormat.format(profile.totalWagered())), targetName != null);
         if (session != null) {
             GameSession s = session;
             source.sendFeedback(() -> Text.translatable("key.gambling.cmd.session",

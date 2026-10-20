@@ -44,7 +44,7 @@ public final class GamblingServerState {
         this.sessionStorage = new JsonSessionStorage(gamblingDir.resolve("sessions.json"));
         this.roundLimiter = new RoundLimiter(config.roundCooldownMillis());
         economy.loadFromDisk();
-        sessions.restoreSessions(sessionStorage.load());
+        sessions.restoreFrom(sessionStorage);
         economy.addChangeListener(this::onProfileChanged);
         sessions.addChangeListener(this::onSessionChanged);
     }
@@ -143,6 +143,15 @@ public final class GamblingServerState {
     }
 
     private void onSessionChanged(java.util.UUID uuid, GameSession session) {
+        // Money moves before the session state that justifies it: persist the
+        // (already updated) balances first so profiles.json on disk always
+        // reflects a stake/payout before sessions.json can show BETTING or
+        // FINALIZING. A crash in between leaves a harmless pre-commit session;
+        // the reverse order would let crash recovery refund a stake that was
+        // never debited (chips created from nothing).
+        if (economy.isDirty() && !economy.save()) {
+            LOGGER.error("Could not persist balances for the session change; retrying on the next save.");
+        }
         sessionStorage.save(sessions.snapshot());
         ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
         if (player != null) {

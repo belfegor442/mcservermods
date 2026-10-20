@@ -39,4 +39,23 @@ class TransactionLogTest {
                 "commas and newlines in names must not break the CSV");
         assertEquals(1, content.lines().count(), "a record must stay on a single CSV line");
     }
+
+    @Test
+    void recordsNeutralizeControlCharsQuotesAndFormulas(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("transactions.csv");
+        TransactionLog log = new TransactionLog(file, TransactionLog.DEFAULT_MAX_BYTES);
+        log.record(UUID.randomUUID(), "=cmd|'/C calc'!A1", "+TRIM(B1)", 1, 1);
+        log.record(UUID.randomUUID(), "a\u0000b\"c", "BET", 2, 2);
+        String content = Files.readString(file);
+
+        assertTrue(content.contains("_cmd|'/C calc'!A1"),
+                "a leading formula marker must be neutralized: " + content);
+        assertTrue(content.contains("_TRIM(B1)"),
+                "a leading + in any field must be neutralized: " + content);
+        assertTrue(content.contains("a_b_c"),
+                "control characters and double quotes must be replaced: " + content);
+        assertTrue(!content.contains("\""), "double quotes must not break the CSV");
+        assertTrue(!content.contains("\u0000"), "control characters must be stripped");
+        assertEquals(2, content.lines().count(), "each record must stay on one line");
+    }
 }

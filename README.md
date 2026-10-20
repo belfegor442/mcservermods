@@ -63,7 +63,7 @@ Run from the repository root with Java 21 installed:
 
 On Windows, use `gradlew.bat` instead. GitHub Actions runs the same verification on pushes to `main` and `fix/**`, pull requests targeting `main`, and manual dispatches; the JARs and an HTML coverage report (JaCoCo) are uploaded as run artifacts.
 
-Pushing a tag starting with `v` (for example `v0.1.0-beta.6`) triggers the release workflow, which builds the mod and publishes a GitHub release containing the mod JARs.
+Pushing a tag starting with `v` (for example `v0.1.0-beta.7`) triggers the release workflow, which builds the mod and publishes a GitHub release containing the mod JARs.
 
 ## Beta limitations
 

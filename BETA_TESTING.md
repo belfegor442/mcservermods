@@ -1,4 +1,4 @@
-# Beta 0.1.0-beta.6 — Test checklist
+# Beta 0.1.0-beta.7 — Test checklist
 
 ## Install
 
@@ -27,7 +27,7 @@
 - Admin commands (`/chips balance|set|add|remove|profile <player>`) also work with the name of an offline player who has joined before.
 - Force a win with `/gambling resolve win` while the balance is at the cap: the stake is refunded and the session ends instead of getting stuck.
 - Restart the server and verify the balance persists.
-- Kill the server (not a clean stop) right after `/gambling bet` (op demo flow) and verify that restarting refunds the stake.
+- Kill the server (not a clean stop) right after `/gambling bet` (op demo flow) and verify that restarting refunds the stake — and that killing it again right after that restart does NOT refund a second time.
 - Corrupt `config/gambling/sessions.json` (make it invalid JSON) while a session file has a `.bak`: restarting loads the backup and refunds committed bets; the corrupt file is quarantined as `sessions.json.corrupt-*`.
 - Test both English and Spanish game messages.
 
