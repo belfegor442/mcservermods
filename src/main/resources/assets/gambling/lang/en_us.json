@@ -32,6 +32,8 @@
   "key.gambling.error.payout_refunded": "The payout would exceed the balance cap. Your stake was refunded.",
   "key.gambling.error.bet_mismatch": "Bet amount does not match the session bet.",
   "key.gambling.error.not_ready": "The gambling system is not ready.",
+  "key.gambling.error.cooldown": "Please wait %s s before starting another round.",
+  "key.gambling.help": "Gambling commands: /chips, /chips profile, /casino <game>, /gambling cancel, /gambling sync. Operator: /gambling start|bet|resolve|finish, /chips set|add|remove|balance.",
   "key.gambling.error.player_not_found": "Player not found or not online.",
   "key.gambling.casino.help": "Casino games: /casino coinflip <bet> <heads|tails>, /casino roulette <bet> <red|black|green>, /casino slots <bet>",
   "key.gambling.casino.coinflip.win": "Coin flip: %s. You chose %s. You win! Payout: %s CHIPS.",

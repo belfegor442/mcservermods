@@ -2,6 +2,7 @@ package com.gambling;
 
 import com.gambling.command.ModCommands;
 import com.gambling.command.CasinoCommands;
+import com.gambling.config.GamblingConfig;
 import com.gambling.game.GameSessionManager;
 import com.gambling.network.BetRequestC2S;
 import com.gambling.network.GameStateSyncS2C;
@@ -23,10 +24,12 @@ public final class GamblingMod implements ModInitializer {
     public static final String MOD_ID = "gambling";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    private static final int AUTOSAVE_INTERVAL_TICKS = 1200;
+    private static final int TICKS_PER_SECOND = 20;
 
     @Override
     public void onInitialize() {
+        GamblingConfig.load(FabricLoader.getInstance().getConfigDir()
+                .resolve("gambling").resolve("gambling.json"));
         registerPayloads();
         ModCommands.register();
         CasinoCommands.register();
@@ -76,8 +79,9 @@ public final class GamblingMod implements ModInitializer {
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             GamblingServerState state = GamblingServerState.get();
+            int intervalTicks = GamblingConfig.get().autosaveSeconds() * TICKS_PER_SECOND;
             if (state != null && state.economy().isDirty()
-                    && server.getTicks() % AUTOSAVE_INTERVAL_TICKS == 0) {
+                    && server.getTicks() % intervalTicks == 0) {
                 state.economy().save();
             }
         });

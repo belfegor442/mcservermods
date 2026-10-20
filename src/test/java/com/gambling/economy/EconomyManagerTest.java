@@ -253,6 +253,28 @@ class EconomyManagerTest {
     }
 
     @Test
+    void customDefaultChipsIsHonored(@TempDir Path dir) {
+        EconomyManager manager = new EconomyManager(
+                new JsonProfileStorage(dir.resolve("profiles.json")),
+                new TransactionLog(dir.resolve("transactions.csv")),
+                4242L);
+        manager.loadFromDisk();
+        PlayerProfile profile = manager.getOrCreate(UUID.randomUUID(), "Steve");
+        assertEquals(4242L, profile.chips());
+    }
+
+    @Test
+    void customDefaultChipsIsClamped(@TempDir Path dir) {
+        EconomyManager manager = new EconomyManager(
+                new JsonProfileStorage(dir.resolve("profiles.json")),
+                new TransactionLog(dir.resolve("transactions.csv")),
+                Validation.MAX_ADMIN_AMOUNT + 100);
+        manager.loadFromDisk();
+        PlayerProfile profile = manager.getOrCreate(UUID.randomUUID(), "Steve");
+        assertEquals(Validation.MAX_ADMIN_AMOUNT, profile.chips());
+    }
+
+    @Test
     void mapSnapshotSaveDoesNotLeakMutableState(@TempDir Path dir) {
         EconomyManager manager = createManager(dir);
         UUID id = UUID.randomUUID();

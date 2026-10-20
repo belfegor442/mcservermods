@@ -1,4 +1,4 @@
-# Beta 0.1.0-beta.4 — Test checklist
+# Beta 0.1.0-beta.5 — Test checklist
 
 ## Install
 
@@ -6,7 +6,8 @@
 2. Install Minecraft Java 1.21.1, Fabric Loader, and Fabric API on the client and server.
 3. Put the mod JAR in the server's `mods` folder. Install it on the client too for the custom HUD and translated client state.
 4. Start the server and confirm there are no mod initialization errors.
-5. Join and run `/chips` to verify that a profile is created and the starting balance is shown.
+5. Check that `config/gambling/gambling.json` was created and the defaults look right; restart after editing it.
+6. Join and run `/chips` to verify that a profile is created and the starting balance is shown.
 
 ## Gameplay smoke tests
 
@@ -16,6 +17,8 @@
 - Red/black roulette wins return 20 CHIPS for a 10-CHIP stake; green wins on zero return 360 CHIPS.
 - `/casino slots 10` displays three symbols from a seven-symbol reel set. A pair returns 20 CHIPS, a non-SEVEN triple returns 80 CHIPS, and three SEVEN symbols return 200 CHIPS.
 - After a round, the HUD keeps showing the game, bet, and result until the next round starts or the player disconnects.
+- Running two casino rounds back-to-back faster than `roundCooldownMillis` (default 1 s) shows the cooldown message; after waiting, the round starts.
+- `/gambling help` lists the commands.
 - Plain `/casino` and `/casino help` list all three games.
 - Bets above the current balance fail without making the balance negative.
 - A second game cannot start while a session is active.

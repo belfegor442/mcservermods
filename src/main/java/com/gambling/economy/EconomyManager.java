@@ -16,11 +16,17 @@ public final class EconomyManager {
     private final JsonProfileStorage storage;
     private final TransactionLog transactionLog;
     private final List<BiConsumer<UUID, PlayerProfile>> changeListeners = new ArrayList<>();
+    private final long defaultChips;
     private volatile boolean dirty;
 
     public EconomyManager(JsonProfileStorage storage, TransactionLog transactionLog) {
+        this(storage, transactionLog, DEFAULT_CHIPS);
+    }
+
+    public EconomyManager(JsonProfileStorage storage, TransactionLog transactionLog, long defaultChips) {
         this.storage = storage;
         this.transactionLog = transactionLog;
+        this.defaultChips = Math.min(Math.max(defaultChips, 0L), Validation.MAX_ADMIN_AMOUNT);
     }
 
     public void loadFromDisk() {
@@ -57,10 +63,10 @@ public final class EconomyManager {
     public synchronized PlayerProfile getOrCreate(UUID uuid, String name) {
         PlayerProfile existing = profiles.get(uuid);
         if (existing == null) {
-            existing = new PlayerProfile(uuid, name, DEFAULT_CHIPS, 0L, 0L);
+            existing = new PlayerProfile(uuid, name, defaultChips, 0L, 0L);
             profiles.put(uuid, existing);
             dirty = true;
-            transactionLog.record(uuid, name, "JOIN_GRANT", DEFAULT_CHIPS, existing.chips());
+            transactionLog.record(uuid, name, "JOIN_GRANT", defaultChips, existing.chips());
             fireChanged(uuid, existing);
             return existing.copy();
         }

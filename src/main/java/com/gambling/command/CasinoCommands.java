@@ -4,7 +4,7 @@ import com.gambling.game.GameSessionManager;
 import com.gambling.game.Roulette;
 import com.gambling.game.Slots;
 import com.gambling.server.GamblingServerState;
-import com.gambling.util.Validation;
+import com.gambling.config.GamblingConfig;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -28,13 +28,14 @@ public final class CasinoCommands {
 
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            long maxBet = GamblingConfig.get().maxBet();
             var casino = literal("casino").executes(context -> {
                 context.getSource().sendFeedback(
                         () -> Text.translatable("key.gambling.casino.help"), false);
                 return 1;
             });
             casino.then(literal("coinflip")
-                    .then(argument("bet", LongArgumentType.longArg(1, Validation.MAX_BET))
+                    .then(argument("bet", LongArgumentType.longArg(1, maxBet))
                             .then(argument("side", StringArgumentType.word())
                                     .suggests((context, builder) -> {
                                         builder.suggest("heads");
@@ -46,7 +47,7 @@ public final class CasinoCommands {
                                             LongArgumentType.getLong(context, "bet"),
                                             StringArgumentType.getString(context, "side"))))));
             casino.then(literal("roulette")
-                    .then(argument("bet", LongArgumentType.longArg(1, Validation.MAX_BET))
+                    .then(argument("bet", LongArgumentType.longArg(1, maxBet))
                             .then(argument("color", StringArgumentType.word())
                                     .suggests((context, builder) -> {
                                         builder.suggest(Roulette.RED);
@@ -59,7 +60,7 @@ public final class CasinoCommands {
                                             LongArgumentType.getLong(context, "bet"),
                                             StringArgumentType.getString(context, "color"))))));
             casino.then(literal("slots")
-                    .then(argument("bet", LongArgumentType.longArg(1, Validation.MAX_BET))
+                    .then(argument("bet", LongArgumentType.longArg(1, maxBet))
                             .executes(context -> playSlots(
                                     context.getSource(),
                                     LongArgumentType.getLong(context, "bet")))));
@@ -159,11 +160,20 @@ public final class CasinoCommands {
                                  String gameType, long bet, boolean won, long multiplier,
                                  String resultText, String messageKey, Object[] messageArgs) {
         GameSessionManager sessions = state.sessions();
+        long now = System.currentTimeMillis();
+        long waitMillis = state.roundLimiter().check(player.getUuid(), now);
+        if (waitMillis > 0) {
+            state.replyResult(player, GameSessionManager.Result.error(
+                    "key.gambling.error.cooldown", Long.toString((waitMillis + 999) / 1000)));
+            return 0;
+        }
+
         GameSessionManager.Result started = sessions.startSession(player.getUuid(), gameType, bet);
         if (!started.ok()) {
             state.replyResult(player, started);
             return 0;
         }
+        state.roundLimiter().record(player.getUuid(), now);
 
         GameSessionManager.Result committed = sessions.commitBet(player.getUuid(), bet);
         if (!committed.ok()) {

@@ -1,5 +1,6 @@
 package com.gambling.server;
 
+import com.gambling.config.GamblingConfig;
 import com.gambling.economy.EconomyManager;
 import com.gambling.economy.JsonProfileStorage;
 import com.gambling.economy.PlayerProfile;
@@ -7,6 +8,7 @@ import com.gambling.economy.TransactionLog;
 import com.gambling.game.GameSession;
 import com.gambling.game.GameSessionManager;
 import com.gambling.game.JsonSessionStorage;
+import com.gambling.game.RoundLimiter;
 import com.gambling.network.GameStateSyncS2C;
 import com.gambling.network.ProfileSyncS2C;
 import com.gambling.util.Validation;
@@ -27,6 +29,8 @@ public final class GamblingServerState {
     private final EconomyManager economy;
     private final GameSessionManager sessions;
     private final JsonSessionStorage sessionStorage;
+    private final RoundLimiter roundLimiter;
+    private final GamblingConfig config;
     private final MinecraftServer server;
 
     private GamblingServerState(MinecraftServer server, Path configDir) {
@@ -34,9 +38,11 @@ public final class GamblingServerState {
         Path gamblingDir = configDir.resolve("gambling");
         JsonProfileStorage storage = new JsonProfileStorage(gamblingDir.resolve("profiles.json"));
         TransactionLog log = new TransactionLog(gamblingDir.resolve("transactions.csv"));
-        this.economy = new EconomyManager(storage, log);
+        this.config = GamblingConfig.get();
+        this.economy = new EconomyManager(storage, log, config.defaultChips());
         this.sessions = new GameSessionManager(economy);
         this.sessionStorage = new JsonSessionStorage(gamblingDir.resolve("sessions.json"));
+        this.roundLimiter = new RoundLimiter(config.roundCooldownMillis());
         economy.loadFromDisk();
         sessions.restoreSessions(sessionStorage.load());
         economy.addChangeListener(this::onProfileChanged);
@@ -69,6 +75,10 @@ public final class GamblingServerState {
         return sessions;
     }
 
+    public RoundLimiter roundLimiter() {
+        return roundLimiter;
+    }
+
     public void onPlayerJoin(ServerPlayerEntity player) {
         PlayerProfile profile = economy.getOrCreate(player.getUuid(), player.getName().getString());
         sendProfileSync(player, profile);
@@ -77,6 +87,7 @@ public final class GamblingServerState {
 
     public void onPlayerQuit(ServerPlayerEntity player) {
         sessions.handleDisconnect(player.getUuid());
+        roundLimiter.clear(player.getUuid());
         if (economy.isDirty()) {
             economy.save();
         }

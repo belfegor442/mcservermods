@@ -32,8 +32,20 @@ CHIPS are fictional in-game points. They have no real-money value and cannot be 
 - `/casino slots <bet>` — three-reel slots with seven symbols. Any pair returns 2×, a triple returns 8×, and three SEVEN symbols return 20× the stake.
 - `/gambling cancel` — abandon a session before committing the bet.
 - `/gambling sync` — request a profile/HUD resynchronization.
+- `/gambling help` — list the gambling commands.
 
 After a casino round resolves, the result stays visible on the HUD until the next round starts or the player disconnects.
+
+## Configuration
+
+`config/gambling/gambling.json` is created on first start (invalid values fall back to defaults; restart the server after editing):
+
+| Key | Default | Range | Meaning |
+| --- | --- | --- | --- |
+| `defaultChips` | `1000` | 0 – 10^12 | CHIPS granted to new players |
+| `maxBet` | `1000000000` | 1 – 10^9 | Highest bet accepted by `/casino` and `/gambling` |
+| `autosaveSeconds` | `60` | 10 – 36000 | Economy autosave interval |
+| `roundCooldownMillis` | `1000` | 0 – 60000 | Minimum delay between casino rounds (0 disables) |
 
 Administrative commands require permission level 2: `/chips set`, `/chips add`, `/chips remove`, `/chips balance <player>`, `/chips profile <player>`, `/gambling start`, `/gambling bet`, `/gambling resolve`, and `/gambling finish`. Admin commands target online players first and fall back to the stored profile of an offline player by name.
 

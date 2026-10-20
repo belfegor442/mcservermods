@@ -200,13 +200,14 @@ public final class ModCommands {
     }
 
     private static LiteralArgumentBuilder<ServerCommandSource> buildGamblingCommand() {
+        long maxBet = com.gambling.config.GamblingConfig.get().maxBet();
         return literal("gambling")
                 .then(literal("start")
                         // Demo/debug flow: resolving a round requires op, so only
                         // operators may open sessions outside the casino games.
                         .requires(src -> src.hasPermissionLevel(2))
                         .then(argument("game", StringArgumentType.word())
-                                .then(argument("bet", LongArgumentType.longArg(1, Validation.MAX_BET))
+                                .then(argument("bet", LongArgumentType.longArg(1, maxBet))
                                         .executes(ctx -> {
                                             ServerPlayerEntity player = ctx.getSource().getPlayer();
                                             GamblingServerState state = requireState(ctx.getSource());
@@ -238,7 +239,7 @@ public final class ModCommands {
                             state.replyResult(player, result);
                             return result.ok() ? 1 : 0;
                         })
-                        .then(argument("amount", LongArgumentType.longArg(1, Validation.MAX_BET))
+                        .then(argument("amount", LongArgumentType.longArg(1, maxBet))
                                 .executes(ctx -> {
                                     ServerPlayerEntity player = ctx.getSource().getPlayer();
                                     GamblingServerState state = requireState(ctx.getSource());
@@ -282,6 +283,12 @@ public final class ModCommands {
                             GameSessionManager.Result result = state.sessions().cancelSession(player.getUuid());
                             state.replyResult(player, result);
                             return result.ok() ? 1 : 0;
+                        }))
+                .then(literal("help")
+                        .executes(ctx -> {
+                            ctx.getSource().sendFeedback(
+                                    () -> Text.translatable("key.gambling.help"), false);
+                            return 1;
                         }))
                 .then(literal("sync")
                         .executes(ctx -> {
