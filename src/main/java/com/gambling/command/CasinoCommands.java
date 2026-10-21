@@ -7,6 +7,14 @@ import com.gambling.network.OpenCasinoS2C;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import com.gambling.server.GamblingServerState;
 import com.gambling.server.ModText;
+import com.gambling.util.ServerTranslations;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import com.gambling.config.GamblingConfig;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -39,6 +47,7 @@ public final class CasinoCommands {
                     return 1;
                 }
                 ServerPlayNetworking.send(player, new OpenCasinoS2C());
+                player.playNotifySound(SoundEvents.UI_BUTTON_CLICK, SoundSource.PLAYERS, 0.55F, 1.15F);
                 return 1;
             });
             casino.then(literal("coinflip")
@@ -163,6 +172,23 @@ public final class CasinoCommands {
      * outcome, and report it. The session stays in FINALIZING (visible on the
      * HUD) and is closed automatically when the next session starts.
      */
+    private static void showRoundFeedback(ServerPlayer player, boolean won,
+                                          String messageKey, Object[] messageArgs) {
+        String language = player.clientInformation().language();
+        String title = ServerTranslations.translate(
+                won ? "key.gambling.feedback.win" : "key.gambling.feedback.loss", language);
+        String subtitle = ServerTranslations.translate(messageKey, language, messageArgs);
+
+        player.connection.send(new ClientboundSetTitlesAnimationPacket(5, 45, 12));
+        player.connection.send(new ClientboundSetTitleTextPacket(Component.literal(title)));
+        player.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal(subtitle)));
+        player.playNotifySound(
+                won ? SoundEvents.UI_TOAST_CHALLENGE_COMPLETE : SoundEvents.BLOCK_NOTE_BLOCK_BASS,
+                SoundSource.PLAYERS,
+                won ? 0.85F : 0.65F,
+                won ? 1.0F : 0.75F);
+    }
+
     private static int playRound(GamblingServerState state, ServerPlayer player,
                                  String gameType, long bet, boolean won, long multiplier,
                                  String resultText, String messageKey, Object[] messageArgs) {
@@ -198,6 +224,7 @@ public final class CasinoCommands {
         }
 
         state.replyResult(player, GameSessionManager.Result.success(messageKey, messageArgs));
+        showRoundFeedback(player, won, messageKey, messageArgs);
         return 1;
     }
 }
