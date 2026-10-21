@@ -41,9 +41,11 @@ public final class PlayerSidebar {
     private static final String OBJECTIVE_NAME = "gambling";
     private static final int TOP_SCORE = 100;
 
+    /** Colors follow the StatusLines layout: blank, chips, level, blank, state, blank, game, bet, result. */
     private static final ChatFormatting[] LINE_COLORS = {
-            ChatFormatting.GOLD, ChatFormatting.AQUA, ChatFormatting.WHITE,
-            ChatFormatting.GREEN, ChatFormatting.YELLOW, ChatFormatting.GOLD
+            ChatFormatting.GRAY, ChatFormatting.GOLD, ChatFormatting.AQUA, ChatFormatting.GRAY,
+            ChatFormatting.WHITE, ChatFormatting.GRAY, ChatFormatting.GREEN, ChatFormatting.YELLOW,
+            ChatFormatting.GOLD
     };
 
     /** Rows currently shown per player, used to remove stale rows on update. */

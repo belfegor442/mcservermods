@@ -46,4 +46,25 @@ class ChipsFormatTest {
         assertEquals("1,000", ChipsFormat.format(1000),
                 "the Turkish locale must not affect the output");
     }
+
+    @Test
+    void compactUsesKmbtSuffixes() {
+        assertEquals("0", ChipsFormat.compact(0));
+        assertEquals("0", ChipsFormat.compact(-5));
+        assertEquals("999", ChipsFormat.compact(999));
+        assertEquals("1.0K", ChipsFormat.compact(1_000));
+        assertEquals("1.5K", ChipsFormat.compact(1_500));
+        assertEquals("12.3K", ChipsFormat.compact(12_345));
+        assertEquals("1.0M", ChipsFormat.compact(999_999),
+                "values that round to 1000 must promote to the next unit");
+        assertEquals("1.0M", ChipsFormat.compact(1_000_000));
+        assertEquals("2.5B", ChipsFormat.compact(2_500_000_000L));
+        assertEquals("1.0T", ChipsFormat.compact(1_000_000_000_000L));
+    }
+
+    @Test
+    void compactIsLocaleIndependent() {
+        Locale.setDefault(Locale.GERMANY);
+        assertEquals("1.5K", ChipsFormat.compact(1_500));
+    }
 }

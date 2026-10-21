@@ -1,4 +1,4 @@
-# Beta 0.2.0-beta.6 — Test checklist
+# Beta 0.2.0-beta.7 — Test checklist
 
 ## Install
 
@@ -12,11 +12,14 @@
 
 ## Gameplay smoke tests
 
-- The server log must show `gambling 0.2.0-beta.6` at boot (only this one gambling JAR may be present in `mods` — older versions side by side are ignored or break startup).
-- On a vanilla client, joining shows the sidebar on the right: localized title (`CASINO` in Spanish), CHIPS/level/state lines (state line is white for readability), and no number column on the right edge.
+- The server log must show `gambling 0.2.0-beta.7` at boot (only this one gambling JAR may be present in `mods` — older versions side by side are ignored or break startup).
+- On a vanilla client, joining shows the sidebar on the right: localized title (`CASINO` in Spanish), grouped rows with blank spacer lines, a compact CHIPS balance (`1.5K` style), level and a white state line, and no number column on the right edge.
+- Joining with a vanilla client automatically opens the casino chest menu: title `CASINO`, one-click game/option/bet selection, an emerald JUGAR RONDA block, a result anvil, a help book, and a barrier to close. No command is used at any point.
+- Clicking any menu item plays a click sound and updates the menu instantly; clicking empty areas, dragging items, or pressing hotbar swap keys must not move or duplicate any menu item (the menu resyncs instead).
+- The menu works identically with the client mod installed (same chest GUI).
 - A hand-edited `profiles.json` balance above the cap (`1,000,000,000,000`) loads clamped to the cap and logs a `clamped to the ... cap` warning at boot.
-- `/casino help` lists all three games. Plain `/casino` opens the graphical menu for players with the client mod (vanilla clients get the command list instead) and every resolved round shows a win/loss title with sound feedback.
-- In the menu, an empty, non-numeric, over-maximum, or over-balance bet shows a red inline error and disables PLAY ROUND; valid input re-enables it.
+- `/casino help` lists the typed shortcuts. Plain `/casino` opens the clickable chest menu for every client (vanilla included), and every resolved round shows a win/loss title with sound feedback plus the result item in the menu.
+- In the menu, picking a game auto-selects its first option; PLAY with an option-less state or an unaffordable bet shows the reason in the result anvil (red lore) instead of running the round.
 - `/casino coinflip 10 heads` runs one round, deducts 10 CHIPS, and returns 20 CHIPS on a win or 0 on a loss.
 - `/casino roulette 10 red` and the `black`/`green` choices produce a number from 0–36 and a matching color.
 - Red/black roulette wins return 20 CHIPS for a 10-CHIP stake; green wins on zero return 360 CHIPS.
@@ -24,7 +27,7 @@
 - After a round, the HUD keeps showing the game, bet, and result until the next round starts or the player disconnects. On a vanilla client this text lives in the right scoreboard sidebar; the sidebar updates after every round and disappears on disconnect.
 - Running two casino rounds back-to-back faster than `roundCooldownMillis` (default 1 s) shows the cooldown message; after waiting, the round starts.
 - `/gambling help` and plain `/gambling` list the commands; `/gambling sync` answers with a confirmation message after resending profile/HUD state.
-- Plain `/casino` and `/casino help` list all three games.
+- Plain `/casino` reopens the chest menu with the previous game, option, and bet selection preserved.
 - Bets above the current balance fail without making the balance negative.
 - A second game cannot start while a session is active.
 - Disconnecting with a committed but unresolved bet refunds the stake.
@@ -38,9 +41,8 @@
 
 ## Known beta limitations
 
-- Players with the client mod get a graphical casino menu from plain `/casino`; vanilla clients get the command list and play with the `/casino <game>` commands. Both paths are equivalent.
-- The panel HUD with the player portrait and the graphical menu require the mod on the client — a vanilla client only ever sees the scoreboard sidebar, chat messages, round titles, and sounds (the server cannot draw anything else).
-- The manual `/gambling start`, `bet`, `resolve`, and `finish` flow is an operator-only demo tool; regular players use the `/casino` games.
+- The clickable chest menu is fully server-driven and works for vanilla clients (it rides the vanilla container protocol); only the optional panel HUD requires the mod on the client. A vanilla client sees the chest menu, the scoreboard sidebar, chat messages, round titles, and sounds.
+- The manual `/gambling start`, `bet`, `resolve`, and `finish` flow is an operator-only demo tool; regular players use the chest menu or the `/casino <game>` shortcuts.
 - Blackjack, War, weapon systems, ammunition, reloads, explosives, teams, and map objectives are not implemented in this beta.
 - The economy is server-authoritative, but this is still a beta. Keep backups and do not treat CHIPS as real-money value.
 

@@ -13,12 +13,22 @@ import com.gambling.network.GameStateSyncS2C;
 import com.gambling.network.ProfileSyncS2C;
 import com.gambling.util.Validation;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.OptionalInt;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class GamblingServerState {
     private static final Logger LOGGER = LoggerFactory.getLogger("gambling-server");
@@ -33,6 +43,7 @@ public final class GamblingServerState {
     private final RoundLimiter roundLimiter;
     private final GamblingConfig config;
     private final MinecraftServer server;
+    private final Map<UUID, CasinoGui> casinoGuis = new ConcurrentHashMap<>();
     private volatile boolean transactionPersistenceHealthy = true;
 
     private GamblingServerState(MinecraftServer server, Path configDir) {
@@ -102,14 +113,48 @@ public final class GamblingServerState {
         sendProfileSync(player, profile);
         sendSessionSync(player, sessions.getSession(player.getUUID()));
         PlayerSidebar.update(player, profile, sessions.getSession(player.getUUID()));
+        if (config.openCasinoMenuOnJoin()) {
+            openCasinoMenu(player);
+        }
     }
 
     public void onPlayerQuit(ServerPlayer player) {
         sessions.handleDisconnect(player.getUUID());
         roundLimiter.clear(player.getUUID());
         PlayerSidebar.forget(player.getUUID());
+        casinoGuis.remove(player.getUUID());
         if (economy.isDirty()) {
             saveProfilesIfSafe();
+        }
+    }
+
+    /**
+     * Opens the server-driven chest GUI. Works for every client, vanilla
+     * included: the menu is a plain GENERIC_9x3 over the vanilla protocol,
+     * while all rendering of names, lore and actions happens server-side.
+     */
+    public void openCasinoMenu(ServerPlayer player) {
+        CasinoGui gui = casinoGuis.computeIfAbsent(player.getUUID(),
+                id -> new CasinoGui(this, id, player.getName().getString()));
+        Component title = ModText.of(player, "key.gambling.menu.title");
+        OptionalInt opened = player.openMenu(new MenuProvider() {
+            @Override
+            public Component getDisplayName() {
+                return title;
+            }
+
+            @Override
+            public AbstractContainerMenu createMenu(int containerId, Inventory inventory,
+                                                    Player menuPlayer) {
+                SimpleContainer container = new SimpleContainer(CasinoGui.SLOT_COUNT);
+                CasinoMenu menu = new CasinoMenu(containerId, inventory, container, gui);
+                gui.attach(container, menu);
+                gui.render(player);
+                return menu;
+            }
+        });
+        if (opened.isPresent()) {
+            player.containerMenu.sendAllDataToRemote();
         }
     }
 
@@ -159,6 +204,10 @@ public final class GamblingServerState {
         if (player != null) {
             sendProfileSync(player, profile);
             PlayerSidebar.update(player, profile, sessions.getSession(uuid));
+            CasinoGui gui = casinoGuis.get(uuid);
+            if (gui != null) {
+                gui.refresh(player);
+            }
         }
     }
 

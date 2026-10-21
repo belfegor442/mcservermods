@@ -25,20 +25,23 @@ public final class GamblingConfig {
     public static final long DEFAULT_MAX_BET = Validation.MAX_BET;
     public static final int DEFAULT_AUTOSAVE_SECONDS = 60;
     public static final long DEFAULT_ROUND_COOLDOWN_MILLIS = 1_000L;
+    public static final boolean DEFAULT_OPEN_MENU_ON_JOIN = true;
     public static final int MIN_AUTOSAVE_SECONDS = 10;
     public static final int MAX_AUTOSAVE_SECONDS = 36_000;
     public static final long MAX_ROUND_COOLDOWN_MILLIS = 60_000L;
 
     private static volatile GamblingConfig instance =
             new GamblingConfig(DEFAULT_CHIPS, DEFAULT_MAX_BET, DEFAULT_AUTOSAVE_SECONDS,
-                    DEFAULT_ROUND_COOLDOWN_MILLIS);
+                    DEFAULT_ROUND_COOLDOWN_MILLIS, DEFAULT_OPEN_MENU_ON_JOIN);
 
     private final long defaultChips;
     private final long maxBet;
     private final int autosaveSeconds;
     private final long roundCooldownMillis;
+    private final boolean openCasinoMenuOnJoin;
 
-    public GamblingConfig(long defaultChips, long maxBet, int autosaveSeconds, long roundCooldownMillis) {
+    public GamblingConfig(long defaultChips, long maxBet, int autosaveSeconds,
+                          long roundCooldownMillis, boolean openCasinoMenuOnJoin) {
         this.defaultChips = inRange(defaultChips, 0L, Validation.MAX_ADMIN_AMOUNT)
                 ? defaultChips : DEFAULT_CHIPS;
         this.maxBet = inRange(maxBet, 1L, Validation.MAX_BET)
@@ -48,6 +51,7 @@ public final class GamblingConfig {
                 ? autosaveSeconds : DEFAULT_AUTOSAVE_SECONDS;
         this.roundCooldownMillis = inRange(roundCooldownMillis, 0L, MAX_ROUND_COOLDOWN_MILLIS)
                 ? roundCooldownMillis : DEFAULT_ROUND_COOLDOWN_MILLIS;
+        this.openCasinoMenuOnJoin = openCasinoMenuOnJoin;
     }
 
     public static GamblingConfig get() {
@@ -62,7 +66,8 @@ public final class GamblingConfig {
         try {
             if (!Files.exists(file)) {
                 GamblingConfig defaults = new GamblingConfig(DEFAULT_CHIPS, DEFAULT_MAX_BET,
-                        DEFAULT_AUTOSAVE_SECONDS, DEFAULT_ROUND_COOLDOWN_MILLIS);
+                        DEFAULT_AUTOSAVE_SECONDS, DEFAULT_ROUND_COOLDOWN_MILLIS,
+                        DEFAULT_OPEN_MENU_ON_JOIN);
                 saveQuietly(file, defaults);
                 return defaults;
             }
@@ -77,11 +82,14 @@ public final class GamblingConfig {
                     MIN_AUTOSAVE_SECONDS, MAX_AUTOSAVE_SECONDS, file);
             long cooldown = readLong(root, "roundCooldownMillis", DEFAULT_ROUND_COOLDOWN_MILLIS,
                     0L, MAX_ROUND_COOLDOWN_MILLIS, file);
-            return new GamblingConfig(defaultChips, maxBet, autosaveSeconds, cooldown);
+            boolean openMenuOnJoin = readBoolean(root, "openCasinoMenuOnJoin",
+                    DEFAULT_OPEN_MENU_ON_JOIN, file);
+            return new GamblingConfig(defaultChips, maxBet, autosaveSeconds, cooldown,
+                    openMenuOnJoin);
         } catch (Exception e) {
             LOGGER.error("Failed to load config from {}: {}", file, e.toString());
             return new GamblingConfig(DEFAULT_CHIPS, DEFAULT_MAX_BET, DEFAULT_AUTOSAVE_SECONDS,
-                    DEFAULT_ROUND_COOLDOWN_MILLIS);
+                    DEFAULT_ROUND_COOLDOWN_MILLIS, DEFAULT_OPEN_MENU_ON_JOIN);
         }
     }
 
@@ -104,6 +112,18 @@ public final class GamblingConfig {
         return value;
     }
 
+    private static boolean readBoolean(JsonObject root, String key, boolean def, Path file) {
+        if (!root.has(key) || root.get(key).isJsonNull()) {
+            return def;
+        }
+        try {
+            return root.get(key).getAsBoolean();
+        } catch (Exception e) {
+            LOGGER.warn("Config {} in {} is not a boolean; using default {}.", key, file, def);
+            return def;
+        }
+    }
+
     private static void saveQuietly(Path file, GamblingConfig config) {
         try {
             Files.createDirectories(file.getParent());
@@ -112,6 +132,7 @@ public final class GamblingConfig {
             root.addProperty("maxBet", config.maxBet);
             root.addProperty("autosaveSeconds", config.autosaveSeconds);
             root.addProperty("roundCooldownMillis", config.roundCooldownMillis);
+            root.addProperty("openCasinoMenuOnJoin", config.openCasinoMenuOnJoin);
             Files.writeString(file, GSON.toJson(root) + System.lineSeparator(), StandardCharsets.UTF_8);
             LOGGER.info("Wrote default configuration to {}.", file);
         } catch (Exception e) {
@@ -137,5 +158,9 @@ public final class GamblingConfig {
 
     public long roundCooldownMillis() {
         return roundCooldownMillis;
+    }
+
+    public boolean openCasinoMenuOnJoin() {
+        return openCasinoMenuOnJoin;
     }
 }

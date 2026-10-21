@@ -14,6 +14,7 @@ Fabric mod for Minecraft Java Edition 26.2, built with Java 25.
 - The transaction log rotates at 10 MB so it cannot grow without bound.
 - Playable coin-flip, European roulette, and three-reel slots games, with server-side randomness and game-specific payouts.
 - Works on the server alone: chat messages are translated server-side to the language reported by the client, and clients without the mod get a status sidebar (chips, level, state, active game) in the vanilla scoreboard HUD.
+- Interactive server-driven casino menu (3-row chest GUI over the vanilla protocol): pick the game, the option and the bet with clicks and play rounds — no commands needed. It opens automatically on join (configurable) and from plain `/casino`, and works for every client, modded or not.
 - Optional client mod: adds a custom panel HUD with the player portrait; players with the client mod skip the sidebar and see the panel instead.
 - English and Spanish messages.
 - Regression tests for economy, session transitions, disconnect refunds, failed saves, payout-cap handling, slots/roulette odds, and session crash recovery.
@@ -23,14 +24,14 @@ CHIPS are fictional in-game points. They have no real-money value and cannot be 
 ## Requirements
 
 - **Server:** Minecraft Java Edition 26.2, Fabric Loader and Fabric API compatible with 26.2, Java 25.
-- **Client (vanilla):** nothing to install. Minecraft 26.2 works out of the box; the server-side translation and scoreboard sidebar cover all gambling messages and status.
+- **Client (vanilla):** nothing to install. Minecraft 26.2 works out of the box; the server-side translation, the scoreboard sidebar and the chest casino menu cover all gambling messages, status and play.
 - **Client (optional):** install the same Fabric setup only if you want the custom panel HUD.
 
 ## Player commands
 
 - `/chips` — show your CHIPS balance and level.
 - `/chips profile` — show your full profile, including the active session (if any).
-- `/casino help` (or plain `/casino`) — show available casino commands. Plain `/casino` opens the interactive casino menu for players with the client mod; vanilla clients get the command list instead.
+- `/casino help` — show the typed casino shortcuts. Plain `/casino` opens the clickable casino menu (the same menu every player gets automatically on join).
 - `/casino coinflip <bet> <heads|tails>` — wager CHIPS on a server-randomized coin flip. A win returns 2× the stake; a loss forfeits the stake.
 - `/casino roulette <bet> <red|black|green>` — single-zero European roulette. Red/black wins return 2× the stake; a green/zero win returns 36× the stake.
 - `/casino slots <bet>` — three-reel slots with seven symbols. Any pair returns 2×, a triple returns 8×, and three SEVEN symbols return 20× the stake.
@@ -50,6 +51,7 @@ After a casino round resolves, the result stays visible on the HUD until the nex
 | `maxBet` | `1000000000` | 1 – 10^9 | Highest bet accepted by `/casino` and `/gambling` |
 | `autosaveSeconds` | `60` | 10 – 36000 | Economy autosave interval |
 | `roundCooldownMillis` | `1000` | 0 – 60000 | Minimum delay between casino rounds (0 disables) |
+| `openCasinoMenuOnJoin` | `true` | boolean | Open the clickable casino menu automatically when a player joins |
 
 Administrative commands require permission level 2: `/chips set`, `/chips add`, `/chips remove`, `/chips balance <player>`, `/chips profile <player>`, `/gambling start`, `/gambling bet`, `/gambling resolve`, and `/gambling finish`. Admin commands target online players first and fall back to the stored profile of an offline player by name.
 
@@ -68,4 +70,4 @@ Pushing a tag starting with `v` (for example `v0.1.0-beta.7`) triggers the relea
 
 ## Beta limitations
 
-This is an early beta, not a finished multi-game casino or War mod. Coin flip, European roulette, and slots are playable. Blackjack, a graphical casino menu, and the War mode are not implemented yet. Back up the server's `config/gambling` directory before testing updates.
+This is an early beta, not a finished multi-game casino or War mod. Coin flip, European roulette, and slots are playable (through the chest menu and the typed commands). Blackjack and the War mode are not implemented yet. Back up the server's `config/gambling` directory before testing updates.
