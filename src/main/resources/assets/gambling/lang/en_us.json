@@ -65,5 +65,7 @@
   "key.gambling.menu.play": "PLAY ROUND",
   "key.gambling.menu.close": "CLOSE",
   "key.gambling.menu.hint": "Your balance and results are synced by the server.",
-  "key.gambling.menu.balance": "BALANCE  ·  %s CHIPS"
+  "key.gambling.menu.balance": "BALANCE  ·  %s CHIPS",
+  "key.gambling.feedback.win": "YOU WON",
+  "key.gambling.feedback.loss": "ROUND LOST"
 }
