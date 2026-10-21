@@ -7,6 +7,7 @@ import com.gambling.game.GameSessionManager;
 import com.gambling.network.BetRequestC2S;
 import com.gambling.network.GameStateSyncS2C;
 import com.gambling.network.ProfileSyncS2C;
+import com.gambling.network.OpenCasinoS2C;
 import com.gambling.server.GamblingServerState;
 import com.gambling.util.Validation;
 import net.fabricmc.api.ModInitializer;
@@ -39,6 +40,7 @@ public final class GamblingMod implements ModInitializer {
 
     private static void registerPayloads() {
         PayloadTypeRegistry.clientboundPlay().register(ProfileSyncS2C.ID, ProfileSyncS2C.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(OpenCasinoS2C.ID, OpenCasinoS2C.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(GameStateSyncS2C.ID, GameStateSyncS2C.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(BetRequestC2S.ID, BetRequestC2S.CODEC);
     }

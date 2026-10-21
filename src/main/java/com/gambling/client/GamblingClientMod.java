@@ -2,12 +2,14 @@ package com.gambling.client;
 
 import com.gambling.client.hud.GamblingHudRenderer;
 import com.gambling.network.GameStateSyncS2C;
+import com.gambling.network.OpenCasinoS2C;
 import com.gambling.network.ProfileSyncS2C;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.resources.Identifier;
+import net.minecraft.client.Minecraft;
 
 public final class GamblingClientMod implements ClientModInitializer {
     @Override
@@ -24,10 +26,15 @@ public final class GamblingClientMod implements ClientModInitializer {
                     payload.state(), payload.result());
         });
 
+        ClientPlayNetworking.registerGlobalReceiver(OpenCasinoS2C.ID, (payload, context) ->
+                Minecraft.getInstance().execute(() ->
+                        Minecraft.getInstance().gui.setScreen(new CasinoScreen())));
+
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) ->
                 ClientGamblingState.get().clear());
 
         HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("gambling", "hud"),
                 (extractor, tickCounter) -> GamblingHudRenderer.render(extractor));
+
     }
 }
