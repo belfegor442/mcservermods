@@ -107,7 +107,10 @@ public final class GamblingHudRenderer {
             return;
         }
         Identifier skin = player.getSkin().body().texturePath();
-        context.blit(RenderPipelines.GUI_TEXTURED, skin, x, y, 8.0f, 8.0f, 8, 8, 64, 64);
+        context.blit(RenderPipelines.GUI_TEXTURED, skin, x, y,
+                8.0f, 8.0f, HEAD_SIZE, HEAD_SIZE, 8, 8, 64, 64);
+        context.blit(RenderPipelines.GUI_TEXTURED, skin, x, y,
+                40.0f, 8.0f, HEAD_SIZE, HEAD_SIZE, 8, 8, 64, 64);
     }
 
     private static Component stateLabel(PlayerState state) {
