@@ -84,15 +84,18 @@ public final class GameSessionManager {
                 }
                 continue;
             }
-            if (session.state() == PlayerState.AVAILABLE) {
+            if (session.state() == null || session.state() == PlayerState.AVAILABLE) {
                 // Normal saves never write "available"; this can only come from
                 // a corrupt/edited file and no command can clear such a session.
                 continue;
             }
-            if (Validation.sanitizeGameType(session.gameType()) == null) {
+            String gameType = Validation.sanitizeGameType(session.gameType());
+            if (gameType == null || !Validation.isValidBet(session.bet())) {
+                LOGGER.warn("Dropping invalid restored session for {}.", entry.getKey());
                 continue;
             }
-            sessions.put(entry.getKey(), session);
+            sessions.put(entry.getKey(), new GameSession(entry.getKey(), gameType,
+                    session.bet(), session.state(), session.result()));
         }
     }
 
