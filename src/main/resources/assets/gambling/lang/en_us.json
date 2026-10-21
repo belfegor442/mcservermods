@@ -45,5 +45,6 @@
   "key.gambling.casino.roulette.loss": "Roulette: %s (%s). You chose %s. You lost this bet.",
   "key.gambling.error.roulette_color": "Choose red, black, or green.",
   "key.gambling.casino.slots.win": "Slots: %s | %s | %s. Winning combination! Payout: %s CHIPS.",
-  "key.gambling.casino.slots.loss": "Slots: %s | %s | %s. No winning combination."
+  "key.gambling.casino.slots.loss": "Slots: %s | %s | %s. No winning combination.",
+  "key.gambling.hud.profile_label": "PLAYER PROFILE"
 }
