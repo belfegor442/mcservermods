@@ -82,7 +82,7 @@ public final class GamblingMod implements ModInitializer {
             int intervalTicks = GamblingConfig.get().autosaveSeconds() * TICKS_PER_SECOND;
             if (state != null && state.economy().isDirty()
                     && server.getTickCount() % intervalTicks == 0) {
-                state.economy().save();
+                state.saveProfilesIfSafe();
             }
         });
     }

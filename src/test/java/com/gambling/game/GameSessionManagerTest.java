@@ -305,6 +305,21 @@ class GameSessionManagerTest {
     }
 
     @Test
+    void restoreDropsSessionsWithInvalidBets() {
+        UUID oversizedId = UUID.randomUUID();
+        UUID negativeId = UUID.randomUUID();
+        GameSession oversized = new GameSession(oversizedId, "coinflip",
+                com.gambling.util.Validation.MAX_BET + 1, PlayerState.IN_GAME, "");
+        GameSession negative = new GameSession(negativeId, "slots", -1, PlayerState.FINALIZING, "");
+        GameSessionManager restored = new GameSessionManager(economy);
+
+        restored.restoreSessions(Map.of(oversizedId, oversized, negativeId, negative));
+
+        assertNull(restored.getSession(oversizedId));
+        assertNull(restored.getSession(negativeId));
+    }
+
+    @Test
     void cancelDoesNotDeduct() {
         long before = economy.getProfile(player).chips();
         sessions.startSession(player, "coinflip", 100);

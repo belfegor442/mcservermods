@@ -27,23 +27,41 @@ public final class GamblingServerState {
 
     private final EconomyManager economy;
     private final GameSessionManager sessions;
+    private final JsonProfileStorage profileStorage;
     private final JsonSessionStorage sessionStorage;
+    private final TransactionStateJournal transactionJournal;
     private final RoundLimiter roundLimiter;
     private final GamblingConfig config;
     private final MinecraftServer server;
+    private volatile boolean transactionPersistenceHealthy = true;
 
     private GamblingServerState(MinecraftServer server, Path configDir) {
         this.server = server;
         Path gamblingDir = configDir.resolve("gambling");
-        JsonProfileStorage storage = new JsonProfileStorage(gamblingDir.resolve("profiles.json"));
-        TransactionLog log = new TransactionLog(gamblingDir.resolve("transactions.csv"));
         this.config = GamblingConfig.get();
-        this.economy = new EconomyManager(storage, log, config.defaultChips());
-        this.sessions = new GameSessionManager(economy);
+        this.profileStorage = new JsonProfileStorage(gamblingDir.resolve("profiles.json"));
         this.sessionStorage = new JsonSessionStorage(gamblingDir.resolve("sessions.json"));
+        this.transactionJournal = new TransactionStateJournal(gamblingDir.resolve("state-journal.json"));
+
+        if (!transactionJournal.recover(profileStorage, sessionStorage)) {
+            throw new IllegalStateException(
+                    "Could not recover the gambling transaction journal; refusing to load inconsistent economy data.");
+        }
+
+        TransactionLog log = new TransactionLog(gamblingDir.resolve("transactions.csv"));
+        this.economy = new EconomyManager(profileStorage, log, config.defaultChips());
+        this.sessions = new GameSessionManager(economy);
         this.roundLimiter = new RoundLimiter(config.roundCooldownMillis());
         economy.loadFromDisk();
-        sessions.restoreFrom(sessionStorage);
+        sessions.restoreSessions(sessionStorage.load());
+
+        // Startup may have refunded a persisted BETTING stake. Journal that
+        // refund and the cleaned session map as one recoverable transaction.
+        if (!persistCoherentState()) {
+            throw new IllegalStateException(
+                    "Could not persist recovered gambling state; refusing to start with uncertain balances.");
+        }
+
         economy.addChangeListener(this::onProfileChanged);
         sessions.addChangeListener(this::onSessionChanged);
     }
@@ -55,8 +73,9 @@ public final class GamblingServerState {
 
     public static void stop() {
         if (instance != null) {
-            instance.economy.save();
-            instance.sessionStorage.save(instance.sessions.snapshot());
+            if (!instance.persistCoherentState()) {
+                LOGGER.error("Gambling state could not be fully persisted during shutdown; the transaction journal was retained when possible.");
+            }
             instance = null;
             LOGGER.info("Gambling server state saved and cleared.");
         }
@@ -90,7 +109,7 @@ public final class GamblingServerState {
         roundLimiter.clear(player.getUUID());
         PlayerSidebar.forget(player.getUUID());
         if (economy.isDirty()) {
-            economy.save();
+            saveProfilesIfSafe();
         }
     }
 
@@ -144,20 +163,53 @@ public final class GamblingServerState {
     }
 
     private void onSessionChanged(java.util.UUID uuid, GameSession session) {
-        // Money moves before the session state that justifies it: persist the
-        // (already updated) balances first so profiles.json on disk always
-        // reflects a stake/payout before sessions.json can show BETTING or
-        // FINALIZING. A crash in between leaves a harmless pre-commit session;
-        // the reverse order would let crash recovery refund a stake that was
-        // never debited (chips created from nothing).
-        if (economy.isDirty() && !economy.save()) {
-            LOGGER.error("Could not persist balances for the session change; retrying on the next save.");
-        }
-        sessionStorage.save(sessions.snapshot());
+        persistCoherentState();
         ServerPlayer player = server.getPlayerList().getPlayer(uuid);
         if (player != null) {
             sendSessionSync(player, session);
             PlayerSidebar.update(player, economy.getProfile(uuid), session);
+        }
+    }
+
+    /**
+     * Persists both sides of a money/session transition through a write-ahead
+     * snapshot. If either file write fails, the journal is kept for replay and
+     * profile-only autosaves are blocked until a coherent commit succeeds.
+     */
+    private synchronized boolean persistCoherentState() {
+        var profileSnapshot = economy.snapshot();
+        var sessionSnapshot = sessions.snapshot();
+
+        if (!transactionJournal.save(profileSnapshot, sessionSnapshot)) {
+            transactionPersistenceHealthy = false;
+            LOGGER.error("Could not journal gambling state; independent profile saves are disabled to avoid splitting a transaction.");
+            return false;
+        }
+
+        boolean profilesSaved = economy.save();
+        boolean sessionsSaved = sessionStorage.save(sessionSnapshot);
+        if (!profilesSaved || !sessionsSaved) {
+            transactionPersistenceHealthy = false;
+            LOGGER.error("Could not persist the complete gambling state; the journal will be replayed on the next startup.");
+            return false;
+        }
+
+        if (!transactionJournal.clear()) {
+            transactionPersistenceHealthy = false;
+            LOGGER.error("Gambling files were saved but the journal could not be cleared; independent profile saves remain disabled.");
+            return false;
+        }
+
+        transactionPersistenceHealthy = true;
+        return true;
+    }
+
+    public void saveProfilesIfSafe() {
+        if (!transactionPersistenceHealthy) {
+            return;
+        }
+        if (economy.isDirty() && !economy.save()) {
+            LOGGER.error("Could not autosave gambling profiles; they will be retried.");
         }
     }
 }
