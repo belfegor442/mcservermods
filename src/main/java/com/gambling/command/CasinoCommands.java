@@ -3,6 +3,8 @@ package com.gambling.command;
 import com.gambling.game.GameSessionManager;
 import com.gambling.game.Roulette;
 import com.gambling.game.Slots;
+import com.gambling.network.OpenCasinoS2C;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import com.gambling.server.GamblingServerState;
 import com.gambling.server.ModText;
 import com.gambling.config.GamblingConfig;
@@ -30,8 +32,13 @@ public final class CasinoCommands {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             long maxBet = GamblingConfig.get().maxBet();
             var casino = literal("casino").executes(context -> {
-                context.getSource().sendSuccess(
-                        () -> ModText.of(context.getSource(), "key.gambling.casino.help"), false);
+                ServerPlayer player = context.getSource().getPlayer();
+                if (player == null) {
+                    context.getSource().sendSuccess(
+                            () -> ModText.of(context.getSource(), "key.gambling.casino.help"), false);
+                    return 1;
+                }
+                ServerPlayNetworking.send(player, new OpenCasinoS2C());
                 return 1;
             });
             casino.then(literal("coinflip")
