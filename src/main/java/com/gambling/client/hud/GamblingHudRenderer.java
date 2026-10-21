@@ -58,7 +58,7 @@ public final class GamblingHudRenderer {
         context.fill(x, y, x + width, y + 2, GOLD);
 
         Component title = Component.literal("CASINO").withStyle(ChatFormatting.BOLD);
-        Component level = Component.literal("LV " + state.level()).withStyle(ChatFormatting.BOLD);
+        Component level = Component.translatable("key.gambling.hud.level", String.valueOf(state.level())).withStyle(ChatFormatting.BOLD);
         context.text(font, title, x + 9, y + 6, GOLD);
         context.text(font, level, x + width - 9 - font.width(level), y + 6, MUTED);
         context.fill(x + 8, y + 19, x + width - 8, y + 20, DIVIDER);
@@ -68,7 +68,7 @@ public final class GamblingHudRenderer {
         Component playerName = fit(Component.literal(state.playerName()).withStyle(ChatFormatting.BOLD),
                 font, width - 48);
         context.text(font, playerName, x + 36, y + 28, WHITE);
-        context.text(font, Component.literal("PLAYER PROFILE"), x + 36, y + 40, MUTED);
+        context.text(font, Component.translatable("key.gambling.hud.profile_label"), x + 36, y + 40, MUTED);
 
         int balanceTop = y + 52;
         context.fill(x + 8, balanceTop, x + width - 8, balanceTop + 24, SURFACE);
