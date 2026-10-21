@@ -64,5 +64,6 @@
   "key.gambling.menu.green": "GREEN",
   "key.gambling.menu.play": "PLAY ROUND",
   "key.gambling.menu.close": "CLOSE",
-  "key.gambling.menu.hint": "Your balance and results are synced by the server."
+  "key.gambling.menu.hint": "Your balance and results are synced by the server.",
+  "key.gambling.menu.balance": "BALANCE  ·  %s CHIPS"
 }
