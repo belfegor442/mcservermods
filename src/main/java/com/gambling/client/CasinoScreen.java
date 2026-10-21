@@ -144,7 +144,7 @@ public final class CasinoScreen extends Screen {
         int contentWidth = Math.min(380, width - 20);
         int left = (width - contentWidth) / 2;
         int top = Math.max(8, height / 2 - 132);
-        int bottom = Math.min(height - 8, top + 270);
+        int bottom = Math.min(height - 8, top + 280);
 
         context.fill(left - 1, top - 1, left + contentWidth + 1, bottom + 1, 0xCC080B10);
         context.fill(left, top, left + contentWidth, bottom, PANEL);
@@ -161,7 +161,7 @@ public final class CasinoScreen extends Screen {
         int contentWidth = Math.min(380, width - 20);
         int left = (width - contentWidth) / 2;
         int top = Math.max(8, height / 2 - 132);
-        int bottom = Math.min(height - 8, top + 270);
+        int bottom = Math.min(height - 8, top + 280);
         Font font = Minecraft.getInstance().font;
 
         Component title = Component.translatable("key.gambling.menu.title");
