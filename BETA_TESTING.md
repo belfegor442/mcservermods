@@ -1,4 +1,4 @@
-# Beta 0.2.0-beta.4 — Test checklist
+# Beta 0.2.0-beta.5 — Test checklist
 
 ## Install
 
@@ -12,6 +12,8 @@
 
 ## Gameplay smoke tests
 
+- The server log must show `gambling 0.2.0-beta.5` at boot (only this one gambling JAR may be present in `mods` — older versions side by side are ignored or break startup).
+- On a vanilla client, joining shows the sidebar on the right: localized title (`CASINO` in Spanish), CHIPS/level/state lines, and no number column on the right edge.
 - `/casino help` lists all three games. Plain `/casino` opens the graphical menu for players with the client mod (vanilla clients get the command list instead) and every resolved round shows a win/loss title with sound feedback.
 - In the menu, an empty, non-numeric, over-maximum, or over-balance bet shows a red inline error and disables PLAY ROUND; valid input re-enables it.
 - `/casino coinflip 10 heads` runs one round, deducts 10 CHIPS, and returns 20 CHIPS on a win or 0 on a loss.
@@ -36,6 +38,7 @@
 ## Known beta limitations
 
 - Players with the client mod get a graphical casino menu from plain `/casino`; vanilla clients get the command list and play with the `/casino <game>` commands. Both paths are equivalent.
+- The panel HUD with the player portrait and the graphical menu require the mod on the client — a vanilla client only ever sees the scoreboard sidebar, chat messages, round titles, and sounds (the server cannot draw anything else).
 - The manual `/gambling start`, `bet`, `resolve`, and `finish` flow is an operator-only demo tool; regular players use the `/casino` games.
 - Blackjack, War, weapon systems, ammunition, reloads, explosives, teams, and map objectives are not implemented in this beta.
 - The economy is server-authoritative, but this is still a beta. Keep backups and do not treat CHIPS as real-money value.

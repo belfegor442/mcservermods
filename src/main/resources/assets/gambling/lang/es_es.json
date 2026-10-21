@@ -1,5 +1,6 @@
 {
   "key.gambling.hud.chips": "CHIPS",
+  "key.gambling.hud.title": "\u25c6 CASINO",
   "key.gambling.hud.level": "Nv %s",
   "key.gambling.hud.state": "Estado: %s",
   "key.gambling.hud.state.available": "Disponible",
