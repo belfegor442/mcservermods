@@ -7,6 +7,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import com.gambling.util.ChipsFormat;
 
 import java.util.Locale;
 
@@ -152,22 +153,26 @@ public final class CasinoScreen extends Screen {
 
         Font font = Minecraft.getInstance().font;
         Component title = Component.translatable("key.gambling.menu.title");
-        context.text(font, title, width / 2 - font.width(title) / 2, top + 12, GOLD);
+        context.text(font, title, width / 2 - font.width(title) / 2, top + 10, GOLD);
+        ClientGamblingState state = ClientGamblingState.get();
+        Component balance = Component.translatable("key.gambling.menu.balance",
+                state.hasReceivedProfile() ? ChipsFormat.format(state.chips()) : "—");
+        context.text(font, balance, width / 2 - font.width(balance) / 2, top + 24, WHITE);
         Component subtitle = Component.translatable("key.gambling.menu.subtitle");
-        context.text(font, subtitle, width / 2 - font.width(subtitle) / 2, top + 27, MUTED);
-        context.fill(left + 10, top + 43, left + contentWidth - 10, top + 44, LINE);
+        context.text(font, subtitle, width / 2 - font.width(subtitle) / 2, top + 37, MUTED);
+        context.fill(left + 10, top + 49, left + contentWidth - 10, top + 50, LINE);
 
         Component gameLabel = Component.translatable("key.gambling.menu.choose_game");
-        context.text(font, gameLabel, left + 2, top + 50, WHITE);
-        context.fill(left, top + 47, left + 3, top + 60, GOLD);
+        context.text(font, gameLabel, left + 2, top + 56, WHITE);
+        context.fill(left, top + 53, left + 3, top + 66, GOLD);
 
         Component choiceLabel = Component.translatable("key.gambling.menu.choose_option");
-        context.text(font, choiceLabel, left + 2, top + 91, WHITE);
-        context.fill(left, top + 88, left + 3, top + 101, GOLD);
+        context.text(font, choiceLabel, left + 2, top + 97, WHITE);
+        context.fill(left, top + 94, left + 3, top + 107, GOLD);
 
         Component betLabel = Component.translatable("key.gambling.menu.bet_label");
-        context.text(font, betLabel, left + 2, top + 136, WHITE);
-        context.fill(left, top + 133, left + 3, top + 146, GOLD);
+        context.text(font, betLabel, left + 2, top + 142, WHITE);
+        context.fill(left, top + 139, left + 3, top + 152, GOLD);
 
         Component balance = Component.translatable("key.gambling.menu.hint");
         context.text(font, balance, width / 2 - font.width(balance) / 2, bottom - 14, MUTED);
