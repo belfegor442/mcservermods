@@ -1,4 +1,4 @@
-# Beta 0.2.0-beta.2 — Test checklist
+# Beta 0.2.0-beta.3 — Test checklist
 
 ## Install
 
@@ -12,7 +12,7 @@
 
 ## Gameplay smoke tests
 
-- `/casino help` lists all three games.
+- `/casino help` lists all three games. Plain `/casino` opens the graphical menu for players with the client mod (vanilla clients get the command list instead) and every resolved round shows a win/loss title with sound feedback.
 - `/casino coinflip 10 heads` runs one round, deducts 10 CHIPS, and returns 20 CHIPS on a win or 0 on a loss.
 - `/casino roulette 10 red` and the `black`/`green` choices produce a number from 0–36 and a matching color.
 - Red/black roulette wins return 20 CHIPS for a 10-CHIP stake; green wins on zero return 360 CHIPS.
@@ -34,7 +34,7 @@
 
 ## Known beta limitations
 
-- The games currently use commands and chat feedback; a graphical casino menu is not included.
+- Players with the client mod get a graphical casino menu from plain `/casino`; vanilla clients get the command list and play with the `/casino <game>` commands. Both paths are equivalent.
 - The manual `/gambling start`, `bet`, `resolve`, and `finish` flow is an operator-only demo tool; regular players use the `/casino` games.
 - Blackjack, War, weapon systems, ammunition, reloads, explosives, teams, and map objectives are not implemented in this beta.
 - The economy is server-authoritative, but this is still a beta. Keep backups and do not treat CHIPS as real-money value.

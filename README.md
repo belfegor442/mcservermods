@@ -30,7 +30,7 @@ CHIPS are fictional in-game points. They have no real-money value and cannot be 
 
 - `/chips` — show your CHIPS balance and level.
 - `/chips profile` — show your full profile, including the active session (if any).
-- `/casino help` (or plain `/casino`) — show available casino commands.
+- `/casino help` (or plain `/casino`) — show available casino commands. Plain `/casino` opens the interactive casino menu for players with the client mod; vanilla clients get the command list instead.
 - `/casino coinflip <bet> <heads|tails>` — wager CHIPS on a server-randomized coin flip. A win returns 2× the stake; a loss forfeits the stake.
 - `/casino roulette <bet> <red|black|green>` — single-zero European roulette. Red/black wins return 2× the stake; a green/zero win returns 36× the stake.
 - `/casino slots <bet>` — three-reel slots with seven symbols. Any pair returns 2×, a triple returns 8×, and three SEVEN symbols return 20× the stake.

@@ -42,7 +42,9 @@ public final class CasinoCommands {
             long maxBet = GamblingConfig.get().maxBet();
             var casino = literal("casino").executes(context -> {
                 ServerPlayer player = context.getSource().getPlayer();
-                if (player == null) {
+                // Vanilla clients cannot open the graphical menu (and Fabric
+                // would reject the payload); they get the command list instead.
+                if (player == null || !ServerPlayNetworking.canSend(player, OpenCasinoS2C.ID)) {
                     context.getSource().sendSuccess(
                             () -> ModText.of(context.getSource(), "key.gambling.casino.help"), false);
                     return 1;
