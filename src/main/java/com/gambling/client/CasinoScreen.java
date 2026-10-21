@@ -139,7 +139,7 @@ public final class CasinoScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
         context.fill(0, 0, width, height, 0xB8000000);
         int contentWidth = Math.min(380, width - 20);
         int left = (width - contentWidth) / 2;
@@ -149,8 +149,21 @@ public final class CasinoScreen extends Screen {
         context.fill(left - 1, top - 1, left + contentWidth + 1, bottom + 1, 0xCC080B10);
         context.fill(left, top, left + contentWidth, bottom, PANEL);
         context.fill(left, top, left + contentWidth, top + 3, GOLD);
+        context.fill(left + 10, top + 49, left + contentWidth - 10, top + 50, LINE);
+        context.fill(left, top + 53, left + 3, top + 66, GOLD);
+        context.fill(left, top + 106, left + 3, top + 119, GOLD);
+        context.fill(left, top + 155, left + 3, top + 168, GOLD);
+    }
 
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(context, mouseX, mouseY, partialTick);
+        int contentWidth = Math.min(380, width - 20);
+        int left = (width - contentWidth) / 2;
+        int top = Math.max(8, height / 2 - 132);
+        int bottom = Math.min(height - 8, top + 270);
         Font font = Minecraft.getInstance().font;
+
         Component title = Component.translatable("key.gambling.menu.title");
         context.text(font, title, width / 2 - font.width(title) / 2, top + 10, GOLD);
         ClientGamblingState state = ClientGamblingState.get();
@@ -159,23 +172,16 @@ public final class CasinoScreen extends Screen {
         context.text(font, balance, width / 2 - font.width(balance) / 2, top + 24, WHITE);
         Component subtitle = Component.translatable("key.gambling.menu.subtitle");
         context.text(font, subtitle, width / 2 - font.width(subtitle) / 2, top + 37, MUTED);
-        context.fill(left + 10, top + 49, left + contentWidth - 10, top + 50, LINE);
 
         Component gameLabel = Component.translatable("key.gambling.menu.choose_game");
         context.text(font, gameLabel, left + 2, top + 56, WHITE);
-        context.fill(left, top + 53, left + 3, top + 66, GOLD);
-
         Component choiceLabel = Component.translatable("key.gambling.menu.choose_option");
         context.text(font, choiceLabel, left + 2, top + 109, WHITE);
-        context.fill(left, top + 106, left + 3, top + 119, GOLD);
-
         Component betLabel = Component.translatable("key.gambling.menu.bet_label");
         context.text(font, betLabel, left + 2, top + 158, WHITE);
-        context.fill(left, top + 155, left + 3, top + 168, GOLD);
 
-        Component balance = Component.translatable("key.gambling.menu.hint");
-        context.text(font, balance, width / 2 - font.width(balance) / 2, bottom - 14, MUTED);
-        super.extractRenderState(context, mouseX, mouseY, partialTick);
+        Component hint = Component.translatable("key.gambling.menu.hint");
+        context.text(font, hint, width / 2 - font.width(hint) / 2, bottom - 14, MUTED);
     }
 
     @Override
