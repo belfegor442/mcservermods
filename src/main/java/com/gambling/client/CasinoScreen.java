@@ -8,6 +8,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import com.gambling.util.ChipsFormat;
+import com.gambling.util.Validation;
 
 import java.util.Locale;
 
@@ -15,6 +16,7 @@ public final class CasinoScreen extends Screen {
     private static final int GOLD = 0xFFFFD36A;
     private static final int WHITE = 0xFFF0F2F5;
     private static final int MUTED = 0xFF9BA6B4;
+    private static final int ERROR = 0xFFFF7A7A;
     private static final int PANEL = 0xF0141922;
     private static final int CARD = 0xFF202834;
     private static final int SELECTED = 0xFF514126;
@@ -24,6 +26,8 @@ public final class CasinoScreen extends Screen {
     private String selectedChoice = "heads";
     private String betText = "10";
     private EditBox betInput;
+    private Button playButton;
+    private Component betError;
 
     public CasinoScreen() {
         super(Component.translatable("key.gambling.menu.title"));
@@ -75,7 +79,10 @@ public final class CasinoScreen extends Screen {
                 Component.translatable("key.gambling.menu.bet"));
         betInput.setMaxLength(18);
         betInput.setValue(betText);
-        betInput.setResponder(value -> betText = value);
+        betInput.setResponder(value -> {
+            betText = value;
+            updateValidation();
+        });
         addRenderableWidget(betInput);
 
         int presetY = betY + 28;
@@ -88,16 +95,19 @@ public final class CasinoScreen extends Screen {
                 if (betInput != null) {
                     betInput.setValue(betText);
                 }
+                updateValidation();
             }).bounds(left + i * (presetWidth + 4), presetY, presetWidth, 20).build());
         }
 
         int actionY = presetY + 34;
-        addRenderableWidget(Button.builder(Component.translatable("key.gambling.menu.play"), button -> play())
-                .bounds(left, actionY, contentWidth * 2 / 3 - 3, 25).build());
+        playButton = Button.builder(Component.translatable("key.gambling.menu.play"), button -> play())
+                .bounds(left, actionY, contentWidth * 2 / 3 - 3, 25).build();
+        addRenderableWidget(playButton);
         addRenderableWidget(Button.builder(Component.translatable("key.gambling.menu.close"),
                         button -> onClose())
                 .bounds(left + contentWidth * 2 / 3 + 3, actionY,
                         contentWidth / 3, 25).build());
+        updateValidation();
     }
 
     private Button choiceButton(Component label, int x, int y, int buttonWidth, String choice) {
@@ -118,7 +128,7 @@ public final class CasinoScreen extends Screen {
 
         long amount;
         try {
-            amount = Long.parseLong(betText);
+            amount = Long.parseLong(betText.trim());
         } catch (NumberFormatException exception) {
             return;
         }
@@ -135,6 +145,42 @@ public final class CasinoScreen extends Screen {
         if (!command.isEmpty()) {
             client.player.connection.sendCommand(command);
             onClose();
+        }
+    }
+
+    /**
+     * Pure bet validation shared by the disabled Play button and tests.
+     * Returns the translation key of the error, or null when the bet is valid.
+     */
+    static String validateBetKey(String raw, long balance, boolean hasBalance) {
+        String text = raw == null ? "" : raw.trim();
+        if (text.isEmpty()) {
+            return "key.gambling.menu.error.required";
+        }
+        long amount;
+        try {
+            amount = Long.parseLong(text);
+        } catch (NumberFormatException exception) {
+            return "key.gambling.menu.error.invalid";
+        }
+        if (amount < 1L) {
+            return "key.gambling.menu.error.invalid";
+        }
+        if (amount > Validation.MAX_BET) {
+            return "key.gambling.menu.error.too_high";
+        }
+        if (hasBalance && amount > balance) {
+            return "key.gambling.menu.error.insufficient";
+        }
+        return null;
+    }
+
+    private void updateValidation() {
+        ClientGamblingState state = ClientGamblingState.get();
+        String errorKey = validateBetKey(betText, state.chips(), state.hasReceivedProfile());
+        betError = errorKey == null ? null : Component.translatable(errorKey);
+        if (playButton != null) {
+            playButton.active = errorKey == null;
         }
     }
 
@@ -180,8 +226,11 @@ public final class CasinoScreen extends Screen {
         Component betLabel = Component.translatable("key.gambling.menu.bet_label");
         context.text(font, betLabel, left + 2, top + 158, WHITE);
 
-        Component hint = Component.translatable("key.gambling.menu.hint");
-        context.text(font, hint, width / 2 - font.width(hint) / 2, bottom - 14, MUTED);
+        Component hint = betError != null
+                ? betError
+                : Component.translatable("key.gambling.menu.hint");
+        context.text(font, hint, width / 2 - font.width(hint) / 2, bottom - 14,
+                betError != null ? ERROR : MUTED);
     }
 
     @Override

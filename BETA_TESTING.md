@@ -1,4 +1,4 @@
-# Beta 0.2.0-beta.3 — Test checklist
+# Beta 0.2.0-beta.4 — Test checklist
 
 ## Install
 
@@ -13,13 +13,14 @@
 ## Gameplay smoke tests
 
 - `/casino help` lists all three games. Plain `/casino` opens the graphical menu for players with the client mod (vanilla clients get the command list instead) and every resolved round shows a win/loss title with sound feedback.
+- In the menu, an empty, non-numeric, over-maximum, or over-balance bet shows a red inline error and disables PLAY ROUND; valid input re-enables it.
 - `/casino coinflip 10 heads` runs one round, deducts 10 CHIPS, and returns 20 CHIPS on a win or 0 on a loss.
 - `/casino roulette 10 red` and the `black`/`green` choices produce a number from 0–36 and a matching color.
 - Red/black roulette wins return 20 CHIPS for a 10-CHIP stake; green wins on zero return 360 CHIPS.
 - `/casino slots 10` displays three symbols from a seven-symbol reel set. A pair returns 20 CHIPS, a non-SEVEN triple returns 80 CHIPS, and three SEVEN symbols return 200 CHIPS.
 - After a round, the HUD keeps showing the game, bet, and result until the next round starts or the player disconnects. On a vanilla client this text lives in the right scoreboard sidebar; the sidebar updates after every round and disappears on disconnect.
 - Running two casino rounds back-to-back faster than `roundCooldownMillis` (default 1 s) shows the cooldown message; after waiting, the round starts.
-- `/gambling help` and plain `/gambling` list the commands.
+- `/gambling help` and plain `/gambling` list the commands; `/gambling sync` answers with a confirmation message after resending profile/HUD state.
 - Plain `/casino` and `/casino help` list all three games.
 - Bets above the current balance fail without making the balance negative.
 - A second game cannot start while a session is active.

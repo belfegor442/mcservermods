@@ -306,6 +306,8 @@ public final class ModCommands {
                                 return 0;
                             }
                             state.sendFullSync(player);
+                            ctx.getSource().sendSuccess(
+                                    () -> ModText.of(ctx.getSource(), "key.gambling.cmd.sync"), false);
                             return 1;
                         }));
     }

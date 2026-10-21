@@ -25,6 +25,7 @@
   "key.gambling.cmd.resolved": "Round resolved: %s (payout %s).",
   "key.gambling.cmd.finished": "Session finished.",
   "key.gambling.cmd.cancelled": "Session cancelled.",
+  "key.gambling.cmd.sync": "Profile and HUD resynchronized.",
   "key.gambling.error.already_in_game": "You already have an active game session.",
   "key.gambling.error.no_session": "You have no active game session.",
   "key.gambling.error.invalid_state": "That action is not allowed in the current round state.",
@@ -65,6 +66,10 @@
   "key.gambling.menu.play": "PLAY ROUND",
   "key.gambling.menu.close": "CLOSE",
   "key.gambling.menu.hint": "Your balance and results are synced by the server.",
+  "key.gambling.menu.error.required": "Enter a bet amount.",
+  "key.gambling.menu.error.invalid": "Enter a whole number from 1 to 1,000,000,000.",
+  "key.gambling.menu.error.too_high": "Bet exceeds the 1,000,000,000 CHIPS maximum.",
+  "key.gambling.menu.error.insufficient": "You do not have enough CHIPS for this bet.",
   "key.gambling.menu.balance": "BALANCE  ·  %s CHIPS",
   "key.gambling.feedback.win": "YOU WON",
   "key.gambling.feedback.loss": "ROUND LOST"

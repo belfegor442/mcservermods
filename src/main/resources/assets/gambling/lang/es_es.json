@@ -25,6 +25,7 @@
   "key.gambling.cmd.resolved": "Ronda resuelta: %s (pago %s).",
   "key.gambling.cmd.finished": "Sesión finalizada.",
   "key.gambling.cmd.cancelled": "Sesión cancelada.",
+  "key.gambling.cmd.sync": "Perfil y HUD resincronizados.",
   "key.gambling.error.already_in_game": "Ya tienes una partida activa.",
   "key.gambling.error.no_session": "No tienes una partida activa.",
   "key.gambling.error.invalid_state": "Esa acción no está permitida en el estado actual de la ronda.",
@@ -65,6 +66,10 @@
   "key.gambling.menu.play": "JUGAR RONDA",
   "key.gambling.menu.close": "CERRAR",
   "key.gambling.menu.hint": "Saldo y resultados sincronizados por el servidor.",
+  "key.gambling.menu.error.required": "Introduce una cantidad de apuesta.",
+  "key.gambling.menu.error.invalid": "Introduce un número entero de 1 a 1.000.000.000.",
+  "key.gambling.menu.error.too_high": "La apuesta supera el máximo de 1.000.000.000 CHIPS.",
+  "key.gambling.menu.error.insufficient": "No tienes suficientes CHIPS para esta apuesta.",
   "key.gambling.menu.balance": "SALDO  ·  %s CHIPS",
   "key.gambling.feedback.win": "¡HAS GANADO!",
   "key.gambling.feedback.loss": "RONDA PERDIDA"
