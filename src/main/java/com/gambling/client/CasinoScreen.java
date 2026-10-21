@@ -75,7 +75,6 @@ public final class CasinoScreen extends Screen {
                 Component.translatable("key.gambling.menu.bet"));
         betInput.setMaxLength(18);
         betInput.setValue(betText);
-        betInput.setFilter(value -> value.isEmpty() || value.chars().allMatch(Character::isDigit));
         betInput.setResponder(value -> betText = value);
         addRenderableWidget(betInput);
 
@@ -140,7 +139,7 @@ public final class CasinoScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
         context.fill(0, 0, width, height, 0xB8000000);
         int contentWidth = Math.min(380, width - 20);
         int left = (width - contentWidth) / 2;
@@ -176,12 +175,12 @@ public final class CasinoScreen extends Screen {
 
         Component balance = Component.translatable("key.gambling.menu.hint");
         context.text(font, balance, width / 2 - font.width(balance) / 2, bottom - 14, MUTED);
-        super.render(context, mouseX, mouseY, partialTick);
+        super.extractRenderState(context, mouseX, mouseY, partialTick);
     }
 
     @Override
     public void onClose() {
-        Minecraft.getInstance().setScreen(null);
+        Minecraft.getInstance().gui.setScreen(null);
     }
 
     @Override
