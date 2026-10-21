@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
+import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import com.gambling.config.GamblingConfig;
@@ -46,7 +47,7 @@ public final class CasinoCommands {
                     return 1;
                 }
                 ServerPlayNetworking.send(player, new OpenCasinoS2C());
-                player.playNotifySound(SoundEvents.UI_BUTTON_CLICK, SoundSource.PLAYERS, 0.55F, 1.15F);
+                playSound(player, SoundEvents.UI_BUTTON_CLICK, 0.55F, 1.15F);
                 return 1;
             });
             casino.then(literal("coinflip")
@@ -171,6 +172,15 @@ public final class CasinoCommands {
      * outcome, and report it. The session stays in FINALIZING (visible on the
      * HUD) and is closed automatically when the next session starts.
      */
+    private static void playSound(ServerPlayer player,
+                                  net.minecraft.core.Holder<net.minecraft.sounds.SoundEvent> sound,
+                                  float volume, float pitch) {
+        player.connection.send(new ClientboundSoundPacket(
+                sound, SoundSource.PLAYERS,
+                player.getX(), player.getY(), player.getZ(),
+                volume, pitch, RANDOM.nextLong()));
+    }
+
     private static void showRoundFeedback(ServerPlayer player, boolean won,
                                           String messageKey, Object[] messageArgs) {
         String language = player.clientInformation().language();
@@ -181,10 +191,9 @@ public final class CasinoCommands {
         player.connection.send(new ClientboundSetTitlesAnimationPacket(5, 45, 12));
         player.connection.send(new ClientboundSetTitleTextPacket(Component.literal(title)));
         player.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal(subtitle)));
-        player.playNotifySound(
-                won ? SoundEvents.UI_TOAST_CHALLENGE_COMPLETE : SoundEvents.BLOCK_NOTE_BLOCK_BASS,
-                SoundSource.PLAYERS,
-                won ? 0.85F : 0.65F,
+        playSound(player,
+                won ? SoundEvents.UI_TOAST_CHALLENGE_COMPLETE : SoundEvents.BLOCK_ANVIL_LAND,
+                won ? 0.85F : 0.45F,
                 won ? 1.0F : 0.75F);
     }
 
