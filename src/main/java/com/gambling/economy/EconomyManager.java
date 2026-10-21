@@ -3,6 +3,7 @@ package com.gambling.economy;
 import com.gambling.util.Validation;
 
 import java.util.List;
+import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.Map;
 import java.util.UUID;
@@ -137,6 +138,15 @@ public final class EconomyManager {
         p.addWager(wagered);
         dirty = true;
         fireChanged(uuid, p);
+    }
+
+    /**
+     * Returns a detached, coherent snapshot suitable for transactional storage.
+     */
+    public synchronized Map<UUID, PlayerProfile> snapshot() {
+        Map<UUID, PlayerProfile> copy = new HashMap<>();
+        profiles.forEach((uuid, profile) -> copy.put(uuid, profile.copy()));
+        return Map.copyOf(copy);
     }
 
     public boolean isDirty() {
