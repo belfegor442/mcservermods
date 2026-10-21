@@ -73,7 +73,12 @@ public final class JsonProfileStorage {
                         long chips = p.get("chips").getAsLong();
                         long xp = p.has("xp") ? p.get("xp").getAsLong() : 0L;
                         long wagered = p.has("totalWagered") ? p.get("totalWagered").getAsLong() : 0L;
-                        profiles.put(uuid, new PlayerProfile(uuid, name, chips, xp, wagered));
+                        PlayerProfile profile = new PlayerProfile(uuid, name, chips, xp, wagered);
+                        if (profile.chips() != chips) {
+                            LOGGER.warn("Profile '{}' held {} CHIPS; clamped to the {} cap.",
+                                    name, chips, com.gambling.util.Validation.MAX_ADMIN_AMOUNT);
+                        }
+                        profiles.put(uuid, profile);
                     } catch (Exception e) {
                         LOGGER.warn("Skipping corrupt profile entry '{}': {}", entry.getKey(), e.toString());
                     }

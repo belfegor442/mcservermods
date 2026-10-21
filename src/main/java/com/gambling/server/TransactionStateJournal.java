@@ -154,7 +154,12 @@ public final class TransactionStateJournal {
                 long xp = value.has("xp") ? value.get("xp").getAsLong() : 0L;
                 long wagered = value.has("totalWagered")
                         ? value.get("totalWagered").getAsLong() : 0L;
-                profiles.put(uuid, new PlayerProfile(uuid, name, chips, xp, wagered));
+                PlayerProfile profile = new PlayerProfile(uuid, name, chips, xp, wagered);
+                if (profile.chips() != chips) {
+                    LOGGER.warn("Journal profile '{}' held {} CHIPS; clamped to the {} cap.",
+                            name, chips, com.gambling.util.Validation.MAX_ADMIN_AMOUNT);
+                }
+                profiles.put(uuid, profile);
             }
 
             Map<UUID, GameSession> sessions = new HashMap<>();

@@ -1,4 +1,4 @@
-# Beta 0.2.0-beta.5 — Test checklist
+# Beta 0.2.0-beta.6 — Test checklist
 
 ## Install
 
@@ -12,8 +12,9 @@
 
 ## Gameplay smoke tests
 
-- The server log must show `gambling 0.2.0-beta.5` at boot (only this one gambling JAR may be present in `mods` — older versions side by side are ignored or break startup).
-- On a vanilla client, joining shows the sidebar on the right: localized title (`CASINO` in Spanish), CHIPS/level/state lines, and no number column on the right edge.
+- The server log must show `gambling 0.2.0-beta.6` at boot (only this one gambling JAR may be present in `mods` — older versions side by side are ignored or break startup).
+- On a vanilla client, joining shows the sidebar on the right: localized title (`CASINO` in Spanish), CHIPS/level/state lines (state line is white for readability), and no number column on the right edge.
+- A hand-edited `profiles.json` balance above the cap (`1,000,000,000,000`) loads clamped to the cap and logs a `clamped to the ... cap` warning at boot.
 - `/casino help` lists all three games. Plain `/casino` opens the graphical menu for players with the client mod (vanilla clients get the command list instead) and every resolved round shows a win/loss title with sound feedback.
 - In the menu, an empty, non-numeric, over-maximum, or over-balance bet shows a red inline error and disables PLAY ROUND; valid input re-enables it.
 - `/casino coinflip 10 heads` runs one round, deducts 10 CHIPS, and returns 20 CHIPS on a win or 0 on a loss.

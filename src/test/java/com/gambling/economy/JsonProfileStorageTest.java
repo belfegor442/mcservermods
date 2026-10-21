@@ -34,6 +34,25 @@ class JsonProfileStorageTest {
     }
 
     @Test
+    void overCapBalanceIsClampedOnLoad(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("profiles.json");
+        UUID id = UUID.randomUUID();
+        Files.writeString(file, """
+                {
+                  "version": 1,
+                  "players": {
+                    "%s": { "name": "Steve", "chips": 1000000000000000, "xp": 0, "totalWagered": 0 }
+                  }
+                }
+                """.formatted(id));
+
+        PlayerProfile loaded = new JsonProfileStorage(file).load().get(id);
+        assertNotNull(loaded);
+        assertEquals(com.gambling.util.Validation.MAX_ADMIN_AMOUNT, loaded.chips(),
+                "a hand-edited balance above the cap must load clamped");
+    }
+
+    @Test
     void corruptPrimaryFallsBackToBackup(@TempDir Path dir) throws Exception {
         Path file = dir.resolve("profiles.json");
         JsonProfileStorage storage = new JsonProfileStorage(file);
