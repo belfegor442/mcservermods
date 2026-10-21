@@ -193,7 +193,7 @@ public final class CasinoCommands {
         player.connection.send(new ClientboundSetTitleTextPacket(Component.literal(title)));
         player.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal(subtitle)));
         playSound(player,
-                Holder.direct(won ? SoundEvents.UI_TOAST_CHALLENGE_COMPLETE : SoundEvents.UI_BUTTON_CLICK),
+                won ? Holder.direct(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE) : SoundEvents.UI_BUTTON_CLICK,
                 won ? 0.85F : 0.45F,
                 won ? 1.0F : 0.75F);
     }
