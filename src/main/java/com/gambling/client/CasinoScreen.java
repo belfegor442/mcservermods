@@ -36,7 +36,7 @@ public final class CasinoScreen extends Screen {
         int left = center - contentWidth / 2;
         int cardGap = 6;
         int cardWidth = (contentWidth - cardGap * 2) / 3;
-        int gameY = Math.max(52, height / 2 - 94);
+        int gameY = Math.max(64, height / 2 - 64);
 
         addRenderableWidget(Button.builder(Component.translatable("key.gambling.menu.coinflip"), button -> {
             selectedGame = "coinflip";
@@ -144,8 +144,8 @@ public final class CasinoScreen extends Screen {
         context.fill(0, 0, width, height, 0xB8000000);
         int contentWidth = Math.min(380, width - 20);
         int left = (width - contentWidth) / 2;
-        int top = Math.max(12, height / 2 - 126);
-        int bottom = Math.min(height - 8, top + 238);
+        int top = Math.max(8, height / 2 - 132);
+        int bottom = Math.min(height - 8, top + 270);
 
         context.fill(left - 1, top - 1, left + contentWidth + 1, bottom + 1, 0xCC080B10);
         context.fill(left, top, left + contentWidth, bottom, PANEL);
@@ -167,12 +167,12 @@ public final class CasinoScreen extends Screen {
         context.fill(left, top + 53, left + 3, top + 66, GOLD);
 
         Component choiceLabel = Component.translatable("key.gambling.menu.choose_option");
-        context.text(font, choiceLabel, left + 2, top + 97, WHITE);
-        context.fill(left, top + 94, left + 3, top + 107, GOLD);
+        context.text(font, choiceLabel, left + 2, top + 109, WHITE);
+        context.fill(left, top + 106, left + 3, top + 119, GOLD);
 
         Component betLabel = Component.translatable("key.gambling.menu.bet_label");
-        context.text(font, betLabel, left + 2, top + 142, WHITE);
-        context.fill(left, top + 139, left + 3, top + 152, GOLD);
+        context.text(font, betLabel, left + 2, top + 158, WHITE);
+        context.fill(left, top + 155, left + 3, top + 168, GOLD);
 
         Component balance = Component.translatable("key.gambling.menu.hint");
         context.text(font, balance, width / 2 - font.width(balance) / 2, bottom - 14, MUTED);
