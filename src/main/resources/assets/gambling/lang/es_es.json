@@ -64,5 +64,6 @@
   "key.gambling.menu.green": "VERDE",
   "key.gambling.menu.play": "JUGAR RONDA",
   "key.gambling.menu.close": "CERRAR",
-  "key.gambling.menu.hint": "Saldo y resultados sincronizados por el servidor."
+  "key.gambling.menu.hint": "Saldo y resultados sincronizados por el servidor.",
+  "key.gambling.menu.balance": "SALDO  ·  %s CHIPS"
 }
