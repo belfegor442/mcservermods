@@ -26,6 +26,10 @@ public final class GamblingClientMod implements ClientModInitializer {
                     payload.state(), payload.result());
         });
 
+        ClientPlayNetworking.registerGlobalReceiver(OpenCasinoS2C.ID, (payload, context) ->
+                Minecraft.getInstance().execute(() ->
+                        Minecraft.getInstance().gui.setScreen(new CasinoScreen())));
+
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) ->
                 ClientGamblingState.get().clear());
 
