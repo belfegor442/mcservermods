@@ -13,6 +13,7 @@ import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
+import net.minecraft.core.Holder;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import com.gambling.config.GamblingConfig;
@@ -192,7 +193,7 @@ public final class CasinoCommands {
         player.connection.send(new ClientboundSetTitleTextPacket(Component.literal(title)));
         player.connection.send(new ClientboundSetSubtitleTextPacket(Component.literal(subtitle)));
         playSound(player,
-                won ? SoundEvents.UI_TOAST_CHALLENGE_COMPLETE : SoundEvents.BLOCK_ANVIL_LAND,
+                Holder.direct(won ? SoundEvents.UI_TOAST_CHALLENGE_COMPLETE : SoundEvents.UI_BUTTON_CLICK),
                 won ? 0.85F : 0.45F,
                 won ? 1.0F : 0.75F);
     }
