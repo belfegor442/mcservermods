@@ -69,6 +69,28 @@ class JsonProfileStorageTest {
     }
 
     @Test
+    void corruptPrimaryIsQuarantinedSoNextSaveKeepsBackup(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("profiles.json");
+        Path backup = dir.resolve("profiles.json.bak");
+        JsonProfileStorage storage = new JsonProfileStorage(file);
+        UUID id = UUID.randomUUID();
+        assertTrue(storage.save(Map.of(id, new PlayerProfile(id, "Steve", 100, 0, 0))));
+        assertTrue(storage.save(Map.of(id, new PlayerProfile(id, "Steve", 200, 0, 0))));
+
+        Files.writeString(file, "{{{ broken");
+        assertEquals(100L, storage.load().get(id).chips());
+        assertTrue(!Files.exists(file),
+                "the corrupt primary must not survive the fallback load");
+
+        assertTrue(storage.save(Map.of(id, new PlayerProfile(id, "Steve", 300, 0, 0))));
+        Files.delete(file);
+        PlayerProfile fromBackup = storage.load().get(id);
+        assertNotNull(fromBackup,
+                "the next save must not have copied the corrupt primary over the backup");
+        assertEquals(100L, fromBackup.chips());
+    }
+
+    @Test
     void missingPrimaryFallsBackToBackup(@TempDir Path dir) throws Exception {
         Path file = dir.resolve("profiles.json");
         JsonProfileStorage storage = new JsonProfileStorage(file);

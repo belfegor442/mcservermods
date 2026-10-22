@@ -47,6 +47,10 @@ public final class JsonSessionStorage {
             Map<UUID, GameSession> backup = loadFromFile(backupFile);
             if (backup != null) {
                 LOGGER.info("Restored sessions from backup {}.", backupFile);
+                // Same as profiles: a surviving corrupt primary would be copied
+                // over the good backup by the next save(), destroying the only
+                // readable copy of a committed (BETTING) stake.
+                quarantineCorruptFile();
                 return backup;
             }
             quarantineCorruptFile();
@@ -76,7 +80,8 @@ public final class JsonSessionStorage {
                         String gameType = p.get("game").getAsString();
                         long bet = p.get("bet").getAsLong();
                         PlayerState state = PlayerState.fromId(p.get("state").getAsString());
-                        String result = p.has("result") ? p.get("result").getAsString() : "";
+                        String result = p.has("result") && !p.get("result").isJsonNull()
+                                ? p.get("result").getAsString() : "";
                         sessions.put(uuid, new GameSession(uuid, gameType, bet, state, result));
                     } catch (Exception e) {
                         LOGGER.warn("Skipping corrupt session entry '{}': {}", entry.getKey(), e.toString());

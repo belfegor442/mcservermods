@@ -10,8 +10,6 @@ import net.minecraft.network.chat.Component;
 import com.gambling.util.ChipsFormat;
 import com.gambling.util.Validation;
 
-import java.util.Locale;
-
 public final class CasinoScreen extends Screen {
     private static final int GOLD = 0xFFFFD36A;
     private static final int WHITE = 0xFFF0F2F5;

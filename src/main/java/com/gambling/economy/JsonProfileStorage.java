@@ -41,6 +41,10 @@ public final class JsonProfileStorage {
             Map<UUID, PlayerProfile> backup = loadFromFile(backupFile);
             if (backup != null) {
                 LOGGER.info("Restored profiles from backup {}.", backupFile);
+                // The corrupt primary must not survive: the next save() would copy
+                // it over the good backup before writing the new primary, so a
+                // crash in between would leave both files unreadable.
+                quarantineCorruptFile();
                 return backup;
             }
             quarantineCorruptFile();

@@ -73,6 +73,47 @@ class JsonSessionStorageTest {
     }
 
     @Test
+    void corruptPrimaryIsQuarantinedSoNextSaveKeepsBackup(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("sessions.json");
+        JsonSessionStorage storage = new JsonSessionStorage(file);
+        UUID player = UUID.randomUUID();
+        assertTrue(storage.save(Map.of(player,
+                new GameSession(player, "slots", 25, PlayerState.BETTING, ""))));
+        assertTrue(storage.save(Map.of(player,
+                new GameSession(player, "slots", 999, PlayerState.BETTING, ""))));
+
+        java.nio.file.Files.writeString(file, "{{{ broken");
+        assertEquals(25L, storage.load().get(player).bet());
+        assertTrue(!java.nio.file.Files.exists(file),
+                "the corrupt primary must not survive the fallback load");
+
+        assertTrue(storage.save(Map.of(player,
+                new GameSession(player, "slots", 40, PlayerState.BETTING, ""))));
+        java.nio.file.Files.delete(file);
+        GameSession fromBackup = storage.load().get(player);
+        assertNotNull(fromBackup,
+                "the next save must not have copied the corrupt primary over the backup");
+        assertEquals(25L, fromBackup.bet());
+    }
+
+    @Test
+    void nullResultEntryIsKeptInsteadOfDroppingTheSession(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("sessions.json");
+        UUID player = UUID.randomUUID();
+        java.nio.file.Files.writeString(file, """
+                {"version":1,"players":{
+                  "%s":{"game":"coinflip","bet":50,"state":"betting","result":null}
+                }}
+                """.formatted(player));
+
+        GameSession loaded = new JsonSessionStorage(file).load().get(player);
+        assertNotNull(loaded, "a null result must not drop a committed stake on restore");
+        assertEquals(50L, loaded.bet());
+        assertEquals(PlayerState.BETTING, loaded.state());
+        assertEquals("", loaded.result());
+    }
+
+    @Test
     void missingPrimaryFallsBackToBackup(@TempDir Path dir) throws Exception {
         Path file = dir.resolve("sessions.json");
         JsonSessionStorage storage = new JsonSessionStorage(file);
