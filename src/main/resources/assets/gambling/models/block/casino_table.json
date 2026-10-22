@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "gambling:block/casino_table_top",
+    "side": "gambling:block/casino_table_side"
+  }
+}

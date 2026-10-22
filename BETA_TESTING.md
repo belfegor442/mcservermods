@@ -1,4 +1,4 @@
-# Beta 0.2.0-beta.7 — Test checklist
+# Beta 0.2.0-beta.8 — Test checklist
 
 ## Install
 
@@ -12,11 +12,12 @@
 
 ## Gameplay smoke tests
 
-- The server log must show `gambling 0.2.0-beta.7` at boot (only this one gambling JAR may be present in `mods` — older versions side by side are ignored or break startup).
+- The server log must show `gambling 0.2.0-beta.8` at boot (only this one gambling JAR may be present in `mods` — older versions side by side are ignored or break startup).
 - On a vanilla client, joining shows the sidebar on the right: localized title (`CASINO` in Spanish), grouped rows with blank spacer lines, a compact CHIPS balance (`1.5K` style), level and a white state line, and no number column on the right edge.
 - Joining with a vanilla client automatically opens the casino chest menu: title `CASINO`, one-click game/option/bet selection, an emerald JUGAR RONDA block, a result anvil, a help book, and a barrier to close. No command is used at any point.
 - Clicking any menu item plays a click sound and updates the menu instantly; clicking empty areas, dragging items, or pressing hotbar swap keys must not move or duplicate any menu item (the menu resyncs instead).
 - The menu works identically with the client mod installed (same chest GUI).
+- Creative tab → Decorations contains the **Mesa de Casino / Casino Table** block (gold-trimmed table with a 7 on the sides and a diamond on top): place it and right-click it to open the casino menu; breaking it drops the block again.
 - A hand-edited `profiles.json` balance above the cap (`1,000,000,000,000`) loads clamped to the cap and logs a `clamped to the ... cap` warning at boot.
 - `/casino help` lists the typed shortcuts. Plain `/casino` opens the clickable chest menu for every client (vanilla included), and every resolved round shows a win/loss title with sound feedback plus the result item in the menu.
 - In the menu, picking a game auto-selects its first option; PLAY with an option-less state or an unaffordable bet shows the reason in the result anvil (red lore) instead of running the round.
