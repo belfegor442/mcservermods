@@ -15,7 +15,8 @@ Fabric mod for Minecraft Java Edition 26.2, built with Java 25.
 - Playable coin-flip, European roulette, and three-reel slots games, with server-side randomness and game-specific payouts.
 - Works on the server alone: chat messages are translated server-side to the language reported by the client, and clients without the mod get a status sidebar (chips, level, state, active game) in the vanilla scoreboard HUD.
 - Interactive server-driven casino menu (3-row chest GUI over the vanilla protocol): pick the game, the option and the bet with clicks and play rounds — no commands needed. It opens automatically on join (configurable) and from plain `/casino`, and works for every client, modded or not.
-- Decorative **Casino Table** block (creative tab → Decorations, or the `gambling:casino_table` item): place it anywhere and right-click it to open the same casino menu — a permanent, physical entrance to the casino for survival worlds.
+- Decorative **Casino Table** block (creative tab → Functional Blocks, or the `gambling:casino_table` item): place it anywhere and right-click it to open the same casino menu → a permanent, physical entrance to the casino for survival worlds.
+- Vanilla clients see the block's real texture and name only when the server serves the resource pack attached to each release (`gambling-resources-<version>.zip` set as `resource-pack=` in `server.properties`); without it the block shows the purple missing-texture cube and its raw registry name. `gradlew runGametest` runs an automated end-to-end check of the join menu, the block right-click and a full GUI round.
 - Optional client mod: adds a custom panel HUD with the player portrait; players with the client mod skip the sidebar and see the panel instead.
 - English and Spanish messages.
 - Regression tests for economy, session transitions, disconnect refunds, failed saves, payout-cap handling, slots/roulette odds, and session crash recovery.

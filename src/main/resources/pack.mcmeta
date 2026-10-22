@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "Gambling casino blocks and items for vanilla clients",
+    "min_format": [88, 0],
+    "max_format": 88
+  }
+}

@@ -14,6 +14,16 @@ repositories {
     mavenCentral()
 }
 
+loom {
+    runs {
+        gametest {
+            client()
+            property 'fabric.client.gametest', 'true'
+            property 'fabric.client.gametest.modid', 'gambling'
+        }
+    }
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
@@ -30,6 +40,19 @@ processResources {
         expand 'version': project.version
     }
 }
+
+// Standalone resource pack zip: served to vanilla clients through
+// server.properties resource-pack so the casino table has real textures.
+tasks.register('resourcesZip', Zip) {
+    archiveFileName = "${project.archives_base_name}-resources-${project.version}.zip"
+    destinationDirectory = layout.buildDirectory.dir('libs')
+    from('src/main/resources') {
+        include 'assets/**'
+        include 'pack.mcmeta'
+    }
+}
+
+assemble.dependsOn tasks.named('resourcesZip')
 
 tasks.withType(JavaCompile).configureEach {
     it.options.release = 25

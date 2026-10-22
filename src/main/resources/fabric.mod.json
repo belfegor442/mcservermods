@@ -15,6 +15,9 @@
     ],
     "client": [
       "com.gambling.client.GamblingClientMod"
+    ],
+    "fabric-client-gametest": [
+      "com.gambling.client.gametest.CasinoClientGameTest"
     ]
   },
   "depends": {

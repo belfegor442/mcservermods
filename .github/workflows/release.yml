@@ -23,8 +23,10 @@ jobs:
         run: chmod +x ./gradlew
       - name: Build mod and run unit tests
         run: ./gradlew --no-daemon build
-      - name: Publish GitHub release with mod JARs
+      - name: Publish GitHub release with mod JARs and resource pack
         uses: softprops/action-gh-release@v3
         with:
-          files: build/libs/*.jar
+          files: |
+            build/libs/*.jar
+            build/libs/*.zip
           generate_release_notes: true
